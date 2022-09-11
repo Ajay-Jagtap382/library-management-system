@@ -1,4 +1,4 @@
-module github.com/Ajay-Jagtap382/Library-Management-System
+module github.com/Ajay-Jagtap382/library-management-system
 
 go 1.18
 

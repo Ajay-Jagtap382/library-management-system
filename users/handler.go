@@ -1,15 +1,15 @@
 package users
 
 // import (
-// 	"encoding/json"
-// 	"net/http"
+	"encoding/json"
+	"net/http"
 
-// 	"github.com/Ajay-Jagtap382/Library-Management-System/api"
+// 	"github.com/Ajay-Jagtap382/library-management-system/api"
 
 // 	"github.com/gorilla/mux"
 // )
 
-// func Create(service Service) http.HandlerFunc {
+// func CreteUser(service Service) http.HandlerFunc {
 // 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 // 		var c createRequest
 // 		err := json.NewDecoder(req.Body).Decode(&c)

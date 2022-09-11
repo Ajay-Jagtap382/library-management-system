@@ -1,6 +1,6 @@
 package users
 
-// import "github.com/Ajay-Jagtap382/Library-Management-System/db"
+// import "github.com/Ajay-Jagtap382/library-management-system/db"
 
 // type updateRequest struct {
 // 	ID   string `json:"id"`

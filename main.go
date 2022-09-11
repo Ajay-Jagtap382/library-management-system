@@ -3,10 +3,10 @@ package main
 import (
 	"os"
 
-	"github.com/Ajay-Jagtap382/Library-Management-System/app"
-	"github.com/Ajay-Jagtap382/Library-Management-System/config"
-	"github.com/Ajay-Jagtap382/Library-Management-System/db"
-	"github.com/Ajay-Jagtap382/Library-Management-System/server"
+	"github.com/Ajay-Jagtap382/library-management-system/app"
+	"github.com/Ajay-Jagtap382/library-management-system/config"
+	"github.com/Ajay-Jagtap382/library-management-system/db"
+	"github.com/Ajay-Jagtap382/library-management-system/server"
 
 	"github.com/urfave/cli"
 )

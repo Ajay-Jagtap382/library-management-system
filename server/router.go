@@ -3,12 +3,12 @@ package server
 import (
 	"net/http"
 
-	//"github.com/Ajay-Jagtap382/Library-Management-System/server/users/handler"
+	//"github.com/Ajay-Jagtap382/library-management-system/users/handler"
 
-	"github.com/Ajay-Jagtap382/Library-Management-System/api"
+	"github.com/Ajay-Jagtap382/library-management-system/api"
 
 	"github.com/gorilla/mux"
-	//"github.com/Ajay-Jagtap382/Library-Management-System/config"
+	//"github.com/Ajay-Jagtap382/library-management-system/config"
 )
 
 const (
@@ -24,7 +24,7 @@ func initRouter(dep dependencies) (router *mux.Router) {
 	router.HandleFunc("/ping", pingHandler).Methods(http.MethodGet)
 
 	// Category
-	// router.HandleFunc("/users/", handler.CreteUser).Methods("POST")
+	//router.HandleFunc("/users/", handler.CreteUser).Methods("POST")
 	// router.HandleFunc("/users/", handler.GetUser).Methods("GET")
 	// router.HandleFunc("/user/{userId}", handler.GetUserById).Methods("GET")
 	// router.HandleFunc("/user/{userId}", handler.UpdateUser).Methods("PUT")

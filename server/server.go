@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/Ajay-Jagtap382/Library-Management-System/config"
+	"github.com/Ajay-Jagtap382/library-management-system/config"
 
 	"github.com/urfave/negroni"
 )

@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Ajay-Jagtap382/Library-Management-System/config"
+	"github.com/Ajay-Jagtap382/library-management-system/config"
 
 	_ "github.com/lib/pq"
 	"github.com/mattes/migrate"

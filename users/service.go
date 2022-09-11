@@ -3,7 +3,7 @@ package users
 // import (
 // 	"context"
 
-// 	"github.com/Ajay-Jagtap382/Library-Management-System/db"
+// 	"github.com/Ajay-Jagtap382/library-management-system/db"
 
 // 	"go.uber.org/zap"
 // )

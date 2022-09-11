@@ -1,9 +1,9 @@
 package server
 
 import (
-	_ "github.com/Ajay-Jagtap382/Library-Management-System/app"
-	// "github.com/Ajay-Jagtap382/Library-Management-System/db"
-	// "github.com/Ajay-Jagtap382/Library-Management-System/users"
+	_ "github.com/Ajay-Jagtap382/library-management-system/app"
+	// "github.com/Ajay-Jagtap382/library-management-system/db"
+	// "github.com/Ajay-Jagtap382/library-management-system/users"
 )
 
 type dependencies struct {

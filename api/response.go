@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/Ajay-Jagtap382/Library-Management-System/app"
+	"github.com/Ajay-Jagtap382/library-management-system/app"
 )
 
 type Response struct {
