@@ -1,93 +1,99 @@
 package db
 
-// import (
-// 	"context"
-// 	"database/sql"
-// 	// "time"
-// )
+import (
+	"context"
+	"database/sql"
+)
 
-// const (
-// 	createCategoryQuery = `INSERT INTO categories (
-//         name, created_at, updated_at)
-//         VALUES($1, $2, $3)
-//         `
-// 	listCategoriesQuery     = `SELECT * FROM categories`
-// 	findCategoryByIDQuery   = `SELECT * FROM categories WHERE id = $1`
-// 	deleteCategoryByIDQuery = `DELETE FROM categories WHERE id = $1`
-// 	updateCategoryQuery     = `UPDATE categories SET name = $1, updated_at = $2 where id = $3`
-// )
+const (
+	createUserQuery = `INSERT INTO user (
+		id,
+		first_name,
+		last_name,
+		mobile_num ,
+		email,
+		password,
+		gender)
+        VALUES(?,?,?,?,?,?,?)`
 
-// // type Category struct {
-// // 	ID        string    `db:"id"`
-// // 	Name      string    `db:"name"`
-// // 	CreatedAt time.Time `db:"created_at"`
-// // 	UpdatedAt time.Time `db:"updated_at"`
-// // }
-// type Enduser struct {
-// 	id    int    `json:"id"`
-// 	Email string `json:"email"`
-// 	name  string `json:"name"`
-// 	phone string `json:"phoneNum"`
-// }
+	listUserQuery       = `SELECT * FROM user`
+	findUserByIDQuery   = `SELECT * FROM user WHERE id = ?`
+	deleteUserByIDQuery = `DELETE FROM user WHERE id = ?`
+	updateUserQuery     = `UPDATE user SET first_name = ?, last_name = ? , 
+	mobile_num = ? ,gender=? ,  where id = ?`
+)
 
-// // func (s *store) CreateCategory(ctx context.Context, category *Category) (err error) {
-// // 	now := time.Now()
+type User struct {
+	ID         string `db:"id"`
+	First_Name string `db:"first_name"`
+	Last_Name  string `db:"last_name"`
+	Mobile_Num string `db:"mobile_num"`
+	Email      string `db:"email"`
+	Password   string `db:"password"`
+	Gender     string `db:"gender"`
+}
 
-// // 	return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
-// // 		_, err = s.db.Exec(
-// // 			createCategoryQuery,
-// // 			category.Name,
-// // 			now,
-// // 			now,
-// // 		)
-// // 		return err
-// // 	})
-// // }
+func (s *store) CreateUser(ctx context.Context, user *User) (err error) {
 
-// func (s *store) ListCategories(ctx context.Context) (categories []Enduser, err error) {
-// 	err = WithDefaultTimeout(ctx, func(ctx context.Context) error {
-// 		return s.db.SelectContext(ctx, &categories, listCategoriesQuery)
-// 	})
-// 	if err == sql.ErrNoRows {
-// 		return categories, ErrCategoryNotExist
-// 	}
-// 	return
-// }
+	return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
+		_, err = s.db.Exec(
+			createUserQuery,
+			user.ID,
+			user.First_Name,
+			user.Last_Name,
+			user.Mobile_Num,
+			user.Email,
+			user.Password,
+			user.Gender,
+		)
+		return err
+	})
+}
 
-// // func (s *store) FindCategoryByID(ctx context.Context, id string) (category Category, err error) {
-// // 	err = WithDefaultTimeout(ctx, func(ctx context.Context) error {
-// // 		return s.db.GetContext(ctx, &category, findCategoryByIDQuery, id)
-// // 	})
-// // 	if err == sql.ErrNoRows {
-// // 		return category, ErrCategoryNotExist
-// // 	}
-// // 	return
-// // }
+func (s *store) ListUsers(ctx context.Context) (users []User, err error) {
+	err = WithDefaultTimeout(ctx, func(ctx context.Context) error {
+		return s.db.SelectContext(ctx, &users, listUserQuery)
+	})
+	if err == sql.ErrNoRows {
+		return users, ErrUserNotExist
+	}
+	return
+}
 
-// // func (s *store) DeleteCategoryByID(ctx context.Context, id string) (err error) {
-// // 	return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
-// // 		res, err := s.db.Exec(deleteCategoryByIDQuery, id)
-// // 		cnt, err := res.RowsAffected()
-// // 		if cnt == 0 {
-// // 			return ErrCategoryNotExist
-// // 		}
-// // 		if err != nil {
-// // 			return err
-// // 		}
-// // 		return err
-// // 	})
-// // }
+func (s *store) FindUserByID(ctx context.Context, id string) (user User, err error) {
+	err = WithDefaultTimeout(ctx, func(ctx context.Context) error {
+		return s.db.GetContext(ctx, &user, findUserByIDQuery, id)
+	})
+	if err == sql.ErrNoRows {
+		return user, ErrUserNotExist
+	}
+	return
+}
 
-// // func (s *store) UpdateCategory(ctx context.Context, category *Category) (err error) {
-// // 	now := time.Now()
+func (s *store) DeleteUserByID(ctx context.Context, id string) (err error) {
+	return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
+		res, err := s.db.Exec(deleteUserByIDQuery, id)
+		cnt, err := res.RowsAffected()
+		if cnt == 0 {
+			return ErrUserNotExist
+		}
+		if err != nil {
+			return err
+		}
+		return err
+	})
+}
 
-// // 	return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
-// // 		_, err = s.db.Exec(
-// // 			updateCategoryQuery,
-// // 			category.Name,
-// // 			now,
-// // 			category.ID,
-// // 		)
-// // 		return err
-// // 	})
-// // }
+func (s *store) UpdateUser(ctx context.Context, user *User) (err error) {
+
+	return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
+		_, err = s.db.Exec(
+			updateUserQuery,
+			user.First_Name,
+			user.Last_Name,
+			user.Mobile_Num,
+			user.Gender,
+		)
+		return err
+	})
+}

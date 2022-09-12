@@ -7,6 +7,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.7
 	github.com/mattes/migrate v3.0.1+incompatible
+	github.com/pkg/errors v0.9.1
 	github.com/spf13/viper v1.13.0
 	github.com/urfave/cli v1.22.10
 	github.com/urfave/negroni v1.0.0

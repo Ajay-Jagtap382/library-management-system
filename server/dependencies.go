@@ -1,23 +1,23 @@
 package server
 
 import (
-	_ "github.com/Ajay-Jagtap382/library-management-system/app"
-	// "github.com/Ajay-Jagtap382/library-management-system/db"
-	// "github.com/Ajay-Jagtap382/library-management-system/users"
+	"github.com/Ajay-Jagtap382/library-management-system/app"
+	"github.com/Ajay-Jagtap382/library-management-system/db"
+	"github.com/Ajay-Jagtap382/library-management-system/users"
 )
 
 type dependencies struct {
-	// CategoryService users.Service
+	UserService users.Service
 }
 
 func initDependencies() (dependencies, error) {
-	// appDB := app.GetDB()
-	// logger := app.GetLogger()
-	// dbStore := db.NewStorer(appDB)
+	appDB := app.GetDB()
+	logger := app.GetLogger()
+	dbStore := db.NewStorer(appDB)
 
-	// categoryService := users.NewService(dbStore, logger)
+	userService := users.NewService(dbStore, logger)
 
 	return dependencies{
-		// CategoryService: categoryService,
+		UserService: userService,
 	}, nil
 }

@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 
-	//"github.com/Ajay-Jagtap382/library-management-system/users/handler"
+	"github.com/Ajay-Jagtap382/library-management-system/users"
 
 	"github.com/Ajay-Jagtap382/library-management-system/api"
 
@@ -11,24 +11,21 @@ import (
 	//"github.com/Ajay-Jagtap382/library-management-system/config"
 )
 
-const (
-// versionHeader = "Accept"
-)
+// const (
+//  versionHeader = "Accept"
+// )
 
 func initRouter(dep dependencies) (router *mux.Router) {
-	// v1 := fmt.Sprintf("application/vnd.%s.v1", config.AppName())
-	// TODO: add doc
-	// v2 := fmt.Sprintf("application/vnd.%s.v2", config.AppName())
 
 	router = mux.NewRouter()
 	router.HandleFunc("/ping", pingHandler).Methods(http.MethodGet)
 
 	// Category
-	//router.HandleFunc("/users/", handler.CreteUser).Methods("POST")
-	// router.HandleFunc("/users/", handler.GetUser).Methods("GET")
-	// router.HandleFunc("/user/{userId}", handler.GetUserById).Methods("GET")
-	// router.HandleFunc("/user/{userId}", handler.UpdateUser).Methods("PUT")
-	// router.HandleFunc("/user/{userId}", handler.DeleteUser).Methods("DELETE")
+	router.HandleFunc("/users", users.CreateUser(dep.UserService)).Methods(http.MethodPost)
+	router.HandleFunc("/users", users.GetUser(dep.UserService)).Methods(http.MethodGet)
+	router.HandleFunc("/user/{id}", users.GetUserByID(dep.UserService)).Methods(http.MethodGet)
+	router.HandleFunc("/user/{userId}", users.UpdateUser(dep.UserService)).Methods("PUT")
+	router.HandleFunc("/user/{userId}", users.DeleteUserByID(dep.UserService)).Methods(http.MethodDelete)
 
 	return
 }
