@@ -20,7 +20,7 @@ const (
 	findUserByIDQuery   = `SELECT * FROM user WHERE id = ?`
 	deleteUserByIDQuery = `DELETE FROM user WHERE id = ?`
 	updateUserQuery     = `UPDATE user SET first_name = ?, last_name = ? , 
-	mobile_num = ? ,gender=? ,  where id = ?`
+	mobile_num = ? ,gender=? ,password=?  WHERE id = ?`
 )
 
 type User struct {
@@ -93,6 +93,8 @@ func (s *store) UpdateUser(ctx context.Context, user *User) (err error) {
 			user.Last_Name,
 			user.Mobile_Num,
 			user.Gender,
+			user.Password,
+			user.ID,
 		)
 		return err
 	})

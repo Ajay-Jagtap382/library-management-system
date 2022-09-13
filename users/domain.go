@@ -7,7 +7,6 @@ type updateRequest struct {
 	First_Name string `json:"first_name"`
 	Last_Name  string `json:"last_name"`
 	Mobile_Num string `json:"mobile_num"`
-	Email      string `json:"email"`
 	Password   string `json:"password"`
 	Gender     string `json:"gender"`
 }

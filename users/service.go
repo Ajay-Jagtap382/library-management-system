@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Ajay-Jagtap382/library-management-system/db"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -40,6 +41,8 @@ func (cs *userService) create(ctx context.Context, c createRequest) (err error) 
 		cs.logger.Errorw("Invalid request for user create", "msg", err.Error(), "user", c)
 		return
 	}
+	uuidgen := uuid.New()
+	c.ID = uuidgen.String()
 
 	err = cs.store.CreateUser(ctx, &db.User{
 		ID:         c.ID,
@@ -67,9 +70,9 @@ func (cs *userService) update(ctx context.Context, c updateRequest) (err error) 
 		First_Name: c.First_Name,
 		Last_Name:  c.Last_Name,
 		Mobile_Num: c.Mobile_Num,
-		Email:      c.Email,
-		Password:   c.Password,
 		Gender:     c.Gender,
+		Password:   c.Password,
+		ID:         c.ID,
 	})
 	if err != nil {
 		cs.logger.Error("Error updating user", "err", err.Error(), "user", c)

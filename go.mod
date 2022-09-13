@@ -3,6 +3,7 @@ module github.com/Ajay-Jagtap382/library-management-system
 go 1.18
 
 require (
+	github.com/google/uuid v1.1.2
 	github.com/gorilla/mux v1.8.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.7
