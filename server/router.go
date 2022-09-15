@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Ajay-Jagtap382/library-management-system/book"
+	transaction "github.com/Ajay-Jagtap382/library-management-system/transaction"
 	"github.com/Ajay-Jagtap382/library-management-system/users"
 
 	"github.com/Ajay-Jagtap382/library-management-system/api"
@@ -36,10 +37,10 @@ func initRouter(dep dependencies) (router *mux.Router) {
 	router.HandleFunc("/book/{id}", book.DeleteBookByID(dep.BookService)).Methods(http.MethodDelete)
 
 	//Transactions
-	// router.HandleFunc("/Transactions", book.CreateBook(dep.TransactionService)).Methods(http.MethodPost)
-	// router.HandleFunc("/Transactions", book.GetBook(dep.TransactionService)).Methods(http.MethodGet)
-	// router.HandleFunc("/Transactions", book.UpdateBook(dep.TransactionService)).Methods(http.MethodPut)
-	// router.HandleFunc("/Transactions/{id}", book.DeleteBookByID(dep.TransactionService)).Methods(http.MethodDelete)
+	router.HandleFunc("/Transactions", transaction.CreateTransaction(dep.TransactionService)).Methods(http.MethodPost)
+	router.HandleFunc("/Transactions", transaction.GetTransaction(dep.TransactionService)).Methods(http.MethodGet)
+	router.HandleFunc("/Transactions", transaction.UpdateTransaction(dep.TransactionService)).Methods(http.MethodPut)
+	router.HandleFunc("/Transactions/{id}", transaction.DeleteTransactionByID(dep.TransactionService)).Methods(http.MethodDelete)
 
 	return
 }

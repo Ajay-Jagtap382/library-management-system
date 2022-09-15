@@ -29,6 +29,11 @@ type Storer interface {
 	FindBookByID(ctx context.Context, id string) (book Book, err error)
 	DeleteBookByID(ctx context.Context, id string) (err error)
 	UpdateBook(ctx context.Context, book *Book) (err error)
+
+	CreateTransaction(ctx context.Context, transaction *Transaction) (err error)
+	ListTransaction(ctx context.Context) (transactions []Transaction, err error)
+	DeleteTransactionByID(ctx context.Context, id string) (err error)
+	UpdateTransaction(ctx context.Context, transaction *Transaction) (err error)
 }
 
 type store struct {
