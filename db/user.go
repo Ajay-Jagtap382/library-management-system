@@ -13,13 +13,16 @@ const (
 		mobile_num ,
 		email,
 		password,
-		gender)
-        VALUES(?,?,?,?,?,?,?)`
+		gender,
+		role
+	)
+        VALUES(?,?,?,?,?,?,?,?)`
 
-	listUserQuery       = `SELECT * FROM user`
-	findUserByIDQuery   = `SELECT * FROM user WHERE id = ?`
-	deleteUserByIDQuery = `DELETE FROM user WHERE id = ?`
-	updateUserQuery     = `UPDATE user SET first_name = ?, last_name = ? , 
+	listUserQuery        = `SELECT * FROM user`
+	findUserByIDQuery    = `SELECT * FROM user WHERE id = ?`
+	findUserByEmailQuery = `SELECT * FROM user WHERE email = ?`
+	deleteUserByIDQuery  = `DELETE FROM user WHERE id = ?`
+	updateUserQuery      = `UPDATE user SET first_name = ?, last_name = ? , 
 	mobile_num = ? ,gender=? ,password=?  WHERE id = ?`
 )
 
@@ -31,6 +34,7 @@ type User struct {
 	Email      string `db:"email"`
 	Password   string `db:"password"`
 	Gender     string `db:"gender"`
+	Role       string `db:"role"`
 }
 
 func (s *store) CreateUser(ctx context.Context, user *User) (err error) {
@@ -45,6 +49,7 @@ func (s *store) CreateUser(ctx context.Context, user *User) (err error) {
 			user.Email,
 			user.Password,
 			user.Gender,
+			user.Role,
 		)
 		return err
 	})
@@ -63,6 +68,16 @@ func (s *store) ListUsers(ctx context.Context) (users []User, err error) {
 func (s *store) FindUserByID(ctx context.Context, id string) (user User, err error) {
 	err = WithDefaultTimeout(ctx, func(ctx context.Context) error {
 		return s.db.GetContext(ctx, &user, findUserByIDQuery, id)
+	})
+	if err == sql.ErrNoRows {
+		return user, ErrUserNotExist
+	}
+	return
+}
+
+func (s *store) FindUserByEmail(ctx context.Context, email string) (user User, err error) {
+	err = WithDefaultTimeout(ctx, func(ctx context.Context) error {
+		return s.db.GetContext(ctx, &user, findUserByEmailQuery, email)
 	})
 	if err == sql.ErrNoRows {
 		return user, ErrUserNotExist

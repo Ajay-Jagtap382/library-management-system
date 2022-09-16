@@ -21,6 +21,8 @@ const (
 	listTransactionQuery       = `SELECT * FROM transactions`
 	deleteTransactionByIDQuery = `DELETE FROM transactions WHERE id = ?`
 	updateTransactionQuery     = `UPDATE transactions SET returndate=? WHERE book_id = ? AND user_id =? AND returndate= 0`
+	issueCopyQuery             = `UPDATE book SET currentCopies=currentCopies-1 WHERE id = ? AND currentCopies>0`
+	returnCopyQuery            = `UPDATE book SET currentCopies=currentCopies+1 WHERE id = ?`
 )
 
 type Transaction struct {
@@ -35,6 +37,7 @@ type Transaction struct {
 func (s *store) CreateTransaction(ctx context.Context, transaction *Transaction) (err error) {
 
 	now := time.Now().UTC().Unix()
+	transaction.Duedate = int(now) + 864000
 
 	return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
 		_, err = s.db.Exec(
@@ -45,6 +48,14 @@ func (s *store) CreateTransaction(ctx context.Context, transaction *Transaction)
 			0,
 			transaction.Book_id,
 			transaction.User_id,
+		)
+		if err != nil {
+			return err
+		}
+
+		_, err = s.db.Exec(
+			issueCopyQuery,
+			transaction.Book_id,
 		)
 		return err
 	})
@@ -60,28 +71,22 @@ func (s *store) ListTransaction(ctx context.Context) (transactions []Transaction
 	return
 }
 
-func (s *store) DeleteTransactionByID(ctx context.Context, id string) (err error) {
-	return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
-		res, err := s.db.Exec(deleteTransactionByIDQuery, id)
-		cnt, err := res.RowsAffected()
-		if cnt == 0 {
-			return ErrTransactionNotExist
-		}
-		if err != nil {
-			return err
-		}
-		return err
-	})
-}
-
 func (s *store) UpdateTransaction(ctx context.Context, transaction *Transaction) (err error) {
 
 	return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
 		_, err = s.db.Exec(
 			updateTransactionQuery,
-			transaction.Returndate,
+			time.Now().UTC().Unix(),
 			transaction.Book_id,
 			transaction.User_id,
+		)
+		if err != nil {
+			return err
+		}
+
+		_, err = s.db.Exec(
+			returnCopyQuery,
+			transaction.Book_id,
 		)
 		return err
 	})

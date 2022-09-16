@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/Ajay-Jagtap382/library-management-system/api"
-	"github.com/gorilla/mux"
 )
 
 // Transaction
@@ -46,23 +45,6 @@ func GetTransaction(service Service) http.HandlerFunc {
 		}
 
 		api.Success(rw, http.StatusOK, resp)
-	})
-}
-
-func DeleteTransactionByID(service Service) http.HandlerFunc {
-	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		vars := mux.Vars(req)
-
-		err := service.deleteByID(req.Context(), vars["userId"])
-		if err == errNoTransactionId {
-			api.Error(rw, http.StatusNotFound, api.Response{Message: err.Error()})
-		}
-		if err != nil {
-			api.Error(rw, http.StatusInternalServerError, api.Response{Message: err.Error()})
-			return
-		}
-
-		api.Success(rw, http.StatusOK, api.Response{Message: "Deleted Successfully"})
 	})
 }
 

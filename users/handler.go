@@ -2,11 +2,36 @@ package users
 
 import (
 	"encoding/json"
+
 	"net/http"
 
 	"github.com/Ajay-Jagtap382/library-management-system/api"
 	"github.com/gorilla/mux"
 )
+
+type Authentication struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func Login(service Service) http.HandlerFunc {
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		var j Authentication
+		err := json.NewDecoder(req.Body).Decode(&j)
+		if err != nil {
+			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
+			return
+		}
+		jwtString, err1 := service.GenerateJWT(req.Context(), j.Email, j.Password)
+		if err1 != nil {
+			api.Error(rw, http.StatusBadRequest, api.Response{Message: err1.Error()})
+			return
+		}
+
+		api.Success(rw, http.StatusCreated, jwtString)
+
+	})
+}
 
 func CreateUser(service Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
@@ -109,5 +134,5 @@ func UpdateUser(service Service) http.HandlerFunc {
 }
 
 func isBadRequest(err error) bool {
-	return err == errEmptyName || err == errEmptyID
+	return err == errEmptyFirstName || err == errEmptyID
 }
