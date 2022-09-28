@@ -9,10 +9,10 @@ import (
 )
 
 type Service interface {
-	list(ctx context.Context) (response listResponse, err error)
-	create(ctx context.Context, req Request) (err error)
-	deleteByID(ctx context.Context, id string) (err error)
-	update(ctx context.Context, req Request) (err error)
+	List(ctx context.Context) (response ListResponse, err error)
+	Create(ctx context.Context, req Request) (err error)
+	DeleteByID(ctx context.Context, id string) (err error)
+	Update(ctx context.Context, req Request) (err error)
 }
 
 type transactionService struct {
@@ -20,7 +20,7 @@ type transactionService struct {
 	logger *zap.SugaredLogger
 }
 
-func (cs *transactionService) list(ctx context.Context) (response listResponse, err error) {
+func (cs *transactionService) List(ctx context.Context) (response ListResponse, err error) {
 	transaction, err := cs.store.ListTransaction(ctx)
 	if err == db.ErrUserNotExist {
 		cs.logger.Error("No Transaction present", "err", err.Error())
@@ -34,10 +34,10 @@ func (cs *transactionService) list(ctx context.Context) (response listResponse, 
 	return
 }
 
-func (cs *transactionService) create(ctx context.Context, c Request) (err error) {
+func (cs *transactionService) Create(ctx context.Context, c Request) (err error) {
 	err = c.Validate()
 	if err != nil {
-		cs.logger.Errorw("Invalid request for transaction create", "msg", err.Error(), "user", c)
+		cs.logger.Errorw("Invalid request for transaction Create", "msg", err.Error(), "user", c)
 		return
 	}
 	uuidgen := uuid.New()
@@ -59,9 +59,9 @@ func (cs *transactionService) create(ctx context.Context, c Request) (err error)
 	return
 }
 
-func (cs *transactionService) update(ctx context.Context, c Request) (err error) {
+func (cs *transactionService) Update(ctx context.Context, c Request) (err error) {
 	if err != nil {
-		cs.logger.Error("Invalid Request for transaction update", "err", err.Error(), "user", c)
+		cs.logger.Error("Invalid Request for transaction Update", "err", err.Error(), "user", c)
 		return
 	}
 
@@ -78,7 +78,7 @@ func (cs *transactionService) update(ctx context.Context, c Request) (err error)
 	return
 }
 
-func (cs *transactionService) deleteByID(ctx context.Context, id string) (err error) {
+func (cs *transactionService) DeleteByID(ctx context.Context, id string) (err error) {
 	err = cs.store.DeleteUserByID(ctx, id)
 	if err == db.ErrUserNotExist {
 		cs.logger.Error("user Not present", "err", err.Error(), "user_id", id)

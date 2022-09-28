@@ -11,7 +11,7 @@ type Request struct {
 	User_id    string `json:"user_id"`
 }
 
-type listResponse struct {
+type ListResponse struct {
 	Transaction []db.Transaction `json:"transaction"`
 }
 

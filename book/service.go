@@ -9,11 +9,11 @@ import (
 )
 
 type Service interface {
-	list(ctx context.Context) (response listResponse, err error)
-	create(ctx context.Context, req Request) (err error)
-	findByID(ctx context.Context, id string) (response findByIDResponse, err error)
-	deleteByID(ctx context.Context, id string) (err error)
-	update(ctx context.Context, req Request) (err error)
+	List(ctx context.Context) (response ListResponse, err error)
+	Create(ctx context.Context, req Request) (err error)
+	FindByID(ctx context.Context, id string) (response FindByIDResponse, err error)
+	DeleteByID(ctx context.Context, id string) (err error)
+	Update(ctx context.Context, req Request) (err error)
 }
 
 type bookService struct {
@@ -21,7 +21,7 @@ type bookService struct {
 	logger *zap.SugaredLogger
 }
 
-func (cs *bookService) list(ctx context.Context) (response listResponse, err error) {
+func (cs *bookService) List(ctx context.Context) (response ListResponse, err error) {
 	books, err := cs.store.ListBooks(ctx)
 	if err == db.ErrUserNotExist {
 		cs.logger.Error("No book present", "err", err.Error())
@@ -35,10 +35,10 @@ func (cs *bookService) list(ctx context.Context) (response listResponse, err err
 	return
 }
 
-func (cs *bookService) create(ctx context.Context, c Request) (err error) {
+func (cs *bookService) Create(ctx context.Context, c Request) (err error) {
 	err = c.Validate()
 	if err != nil {
-		cs.logger.Errorw("Invalid request for user create", "msg", err.Error(), "user", c)
+		cs.logger.Errorw("Invalid request for user Create", "msg", err.Error(), "user", c)
 		return
 	}
 	uuidgen := uuid.New()
@@ -58,9 +58,9 @@ func (cs *bookService) create(ctx context.Context, c Request) (err error) {
 	return
 }
 
-func (cs *bookService) update(ctx context.Context, c Request) (err error) {
+func (cs *bookService) Update(ctx context.Context, c Request) (err error) {
 	if err != nil {
-		cs.logger.Error("Invalid Request for user update", "err", err.Error(), "user", c)
+		cs.logger.Error("Invalid Request for user Update", "err", err.Error(), "user", c)
 		return
 	}
 
@@ -79,7 +79,7 @@ func (cs *bookService) update(ctx context.Context, c Request) (err error) {
 	return
 }
 
-func (cs *bookService) findByID(ctx context.Context, id string) (response findByIDResponse, err error) {
+func (cs *bookService) FindByID(ctx context.Context, id string) (response FindByIDResponse, err error) {
 	book, err := cs.store.FindBookByID(ctx, id)
 	if err == db.ErrUserNotExist {
 		cs.logger.Error("No user present", "err", err.Error())
@@ -94,7 +94,7 @@ func (cs *bookService) findByID(ctx context.Context, id string) (response findBy
 	return
 }
 
-func (cs *bookService) deleteByID(ctx context.Context, id string) (err error) {
+func (cs *bookService) DeleteByID(ctx context.Context, id string) (err error) {
 	err = cs.store.DeleteBookByID(ctx, id)
 	if err == db.ErrUserNotExist {
 		cs.logger.Error("user Not present", "err", err.Error(), "user_id", id)

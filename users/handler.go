@@ -14,6 +14,8 @@ type Authentication struct {
 	Password string `json:"password"`
 }
 
+var cs UserService
+
 func Login(service Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		var j Authentication
@@ -35,14 +37,21 @@ func Login(service Service) http.HandlerFunc {
 
 func CreateUser(service Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		var c createRequest
+		var c CreateRequest
 		err := json.NewDecoder(req.Body).Decode(&c)
 		if err != nil {
 			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
 			return
 		}
 
-		err = service.create(req.Context(), c)
+		err = c.Validate()
+		if err != nil {
+			//cs.logger.Errorw("Invalid request for user Create", "msg", err.Error(), "user", c)
+			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
+			return
+		}
+
+		err = service.Create(req.Context(), c)
 		if isBadRequest(err) {
 			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
 			return
@@ -59,7 +68,7 @@ func CreateUser(service Service) http.HandlerFunc {
 
 func GetUser(service Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		resp, err := service.list(req.Context())
+		resp, err := service.List(req.Context())
 		if err == errNoUsers {
 			api.Error(rw, http.StatusNotFound, api.Response{Message: err.Error()})
 			return
@@ -77,7 +86,7 @@ func GetUserByID(service Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 
-		resp, err := service.findByID(req.Context(), vars["id"])
+		resp, err := service.FindByID(req.Context(), vars["id"])
 
 		if err == errNoUserId {
 			api.Error(rw, http.StatusNotFound, api.Response{Message: err.Error()})
@@ -96,7 +105,7 @@ func DeleteUserByID(service Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 
-		err := service.deleteByID(req.Context(), vars["userId"])
+		err := service.DeleteByID(req.Context(), vars["userId"])
 		if err == errNoUserId {
 			api.Error(rw, http.StatusNotFound, api.Response{Message: err.Error()})
 		}
@@ -111,14 +120,14 @@ func DeleteUserByID(service Service) http.HandlerFunc {
 
 func UpdateUser(service Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		var c updateRequest
+		var c UpdateRequest
 		err := json.NewDecoder(req.Body).Decode(&c)
 		if err != nil {
 			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
 			return
 		}
 
-		err = service.update(req.Context(), c)
+		err = service.Update(req.Context(), c)
 		if isBadRequest(err) {
 			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
 			return

@@ -42,6 +42,12 @@ var RoleMap = map[string]int{"superadmin": SUPERADMIN, "admin": ADMIN, "user": U
 
 var jwtKey = []byte("jsd549$^&")
 
+// var tokenRole = ""
+
+// func Tokendatareturn() string {
+// 	return tokenRole
+// }
+
 func Authorize(handler http.HandlerFunc, role int) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -54,20 +60,20 @@ func Authorize(handler http.HandlerFunc, role int) http.HandlerFunc {
 
 		token := r.Header.Get("Authorization")
 
-		isValid, tokenData, err := ValidateToken(token)
+		isValid, TokenDatas, err := ValidateToken(token)
 		fmt.Println(isValid)
 		if err != nil {
 			fmt.Println("error")
 		}
 
-		fmt.Println("Token Data : ", tokenData)
+		fmt.Println("Token Data : ", TokenDatas)
 
 		if !isValid {
 			api.Error(w, http.StatusBadRequest, api.Response{Message: "Token is not valid"})
 			return
 		}
 
-		tokenRole := tokenData.Role
+		tokenRole := TokenDatas.Role
 		if RoleMap[tokenRole] > role {
 			api.Error(w, http.StatusBadRequest, api.Response{Message: "You don't have the access"})
 			return

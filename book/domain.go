@@ -10,11 +10,11 @@ type Request struct {
 	CurrentCopies int    `json:"currentCopies"`
 }
 
-type findByIDResponse struct {
+type FindByIDResponse struct {
 	Book db.Book `json:"book"`
 }
 
-type listResponse struct {
+type ListResponse struct {
 	Books []db.Book `json:"books"`
 }
 

@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"strings"
 )
 
 const (
@@ -48,8 +49,8 @@ func (s *store) CreateUser(ctx context.Context, user *User) (err error) {
 			user.Mobile_Num,
 			user.Email,
 			user.Password,
-			user.Gender,
-			user.Role,
+			strings.ToLower(user.Gender),
+			strings.ToLower(user.Role),
 		)
 		return err
 	})
