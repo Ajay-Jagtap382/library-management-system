@@ -58,6 +58,7 @@ func Authorize(handler http.HandlerFunc, role int) http.HandlerFunc {
 		//4. if role is allowed
 		//5. call handler
 
+		//fmt.Println("hiiiii")
 		token := r.Header.Get("Authorization")
 
 		isValid, TokenDatas, err := ValidateToken(token)
@@ -130,6 +131,7 @@ func initRouter(dep dependencies) (router *mux.Router) {
 	router.HandleFunc("/user/{id}", Authorize(users.GetUserByID(dep.UserService), USER)).Methods(http.MethodGet)
 	router.HandleFunc("/users", Authorize(users.UpdateUser(dep.UserService), USER)).Methods(http.MethodPut)
 	router.HandleFunc("/user/{userId}", Authorize(users.DeleteUserByID(dep.UserService), ADMIN)).Methods(http.MethodDelete)
+	router.HandleFunc("/users/password/reset", Authorize(users.UpdatePassword(dep.UserService), USER)).Methods(http.MethodPut)
 
 	//Books
 	router.HandleFunc("/books", Authorize(book.CreateBook(dep.BookService), ADMIN)).Methods(http.MethodPost)
@@ -142,7 +144,7 @@ func initRouter(dep dependencies) (router *mux.Router) {
 	router.HandleFunc("/Transactions", Authorize(transaction.CreateTransaction(dep.TransactionService), ADMIN)).Methods(http.MethodPost)
 	router.HandleFunc("/Transactions", Authorize(transaction.GetTransaction(dep.TransactionService), ADMIN)).Methods(http.MethodGet)
 	router.HandleFunc("/Transactions", Authorize(transaction.UpdateTransaction(dep.TransactionService), ADMIN)).Methods(http.MethodPut)
-
+	router.HandleFunc("/bookstatus", Authorize(transaction.GetBookStatus(dep.TransactionService), USER)).Methods(http.MethodGet)
 	return
 }
 

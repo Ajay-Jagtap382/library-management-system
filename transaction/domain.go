@@ -11,13 +11,15 @@ type Request struct {
 	User_id    string `json:"user_id"`
 }
 
+type RequestStatus struct {
+	UserID string `json:"user_id"`
+	BookID string `json:"book_id"`
+}
+
 type ListResponse struct {
 	Transaction []db.Transaction `json:"transaction"`
 }
 
 func (cr Request) Validate() (err error) {
-	if cr.ID == "" {
-		return errEmptyID
-	}
 	return
 }

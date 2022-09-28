@@ -24,6 +24,7 @@ type Storer interface {
 	FindUserByEmail(ctx context.Context, email string) (user User, err error)
 	DeleteUserByID(ctx context.Context, id string) (err error)
 	UpdateUser(ctx context.Context, user *User) (err error)
+	UpdatePassword(ctx context.Context, user *User) (err error)
 
 	CreateBook(ctx context.Context, book *Book) (err error)
 	ListBooks(ctx context.Context) (books []Book, err error)
@@ -34,6 +35,7 @@ type Storer interface {
 	CreateTransaction(ctx context.Context, transaction *Transaction) (err error)
 	ListTransaction(ctx context.Context) (transactions []Transaction, err error)
 	UpdateTransaction(ctx context.Context, transaction *Transaction) (err error)
+	BookStatus(ctx context.Context, BookId string, UserID string) (res string, err error)
 }
 
 type store struct {

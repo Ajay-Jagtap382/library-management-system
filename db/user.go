@@ -23,8 +23,8 @@ const (
 	findUserByIDQuery    = `SELECT * FROM user WHERE id = ?`
 	findUserByEmailQuery = `SELECT * FROM user WHERE email = ?`
 	deleteUserByIDQuery  = `DELETE FROM user WHERE id = ?`
-	updateUserQuery      = `UPDATE user SET first_name = ?, last_name = ? , 
-	mobile_num = ? ,gender=? ,password=?  WHERE id = ?`
+	updateUserQuery      = `UPDATE user SET first_name = ?, last_name = ? WHERE id = ?`
+	updatePasswordQuery  = `UPDATE user SET password=? where id=?`
 )
 
 type User struct {
@@ -107,8 +107,17 @@ func (s *store) UpdateUser(ctx context.Context, user *User) (err error) {
 			updateUserQuery,
 			user.First_Name,
 			user.Last_Name,
-			user.Mobile_Num,
-			user.Gender,
+			user.ID,
+		)
+		return err
+	})
+}
+
+func (s *store) UpdatePassword(ctx context.Context, user *User) (err error) {
+
+	return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
+		_, err = s.db.Exec(
+			updatePasswordQuery,
 			user.Password,
 			user.ID,
 		)

@@ -32,6 +32,12 @@ type FindByIDResponse struct {
 	User db.User `json:"user"`
 }
 
+type ChangePassword struct {
+	ID          string `json:"id"`
+	Password    string `json:"password"`
+	NewPassword string `json:"new_password"`
+}
+
 type ListResponse struct {
 	Users []db.User `json:"users"`
 }

@@ -101,6 +101,47 @@ func GetUserByID(service Service) http.HandlerFunc {
 	})
 }
 
+func UpdatePassword(service Service) http.HandlerFunc {
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		var c ChangePassword
+		resp, err := service.List(req.Context())
+
+		if err != nil {
+			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
+			return
+		}
+		err = json.NewDecoder(req.Body).Decode(&c)
+
+		if err != nil {
+			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
+			return
+		}
+		flag := false
+
+		for _, v := range resp.Users {
+			if v.ID == c.ID && v.Password == c.Password {
+				flag = true
+				err = service.UpdatePassword(req.Context(), c)
+				if isBadRequest(err) {
+					api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
+					return
+				}
+
+				if err != nil {
+					api.Error(rw, http.StatusInternalServerError, api.Response{Message: err.Error()})
+					return
+				}
+
+				api.Success(rw, http.StatusOK, api.Response{Message: "Updated Successfully"})
+			}
+		}
+		if !flag {
+			api.Success(rw, http.StatusOK, api.Response{Message: "Wrong pasword"})
+		}
+
+	})
+}
+
 func DeleteUserByID(service Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)

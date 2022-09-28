@@ -21,6 +21,9 @@ const (
 	deleteBookByIDQuery = `DELETE FROM book WHERE id = ?`
 	updateBookQuery     = `UPDATE book SET bookName=? ,
 	description=?, totalCopies=?, currentCopies=? where id = ?`
+
+	//GetTotalCopiesQuery  = `SELECT totalCopies FROM book where id=? `
+
 )
 
 type Book struct {
@@ -41,6 +44,12 @@ type BookItem struct {
 	Return_date big.Int `db:return_date"`
 	Lend_by     string  `db:"lend_by"`
 }
+
+// func (s *store) GetTotalCopies(ctx context.Context , bookId string) ( int){
+// 	cnt:=0
+// 	cnt, _ = s.db.Exec(GetTotalCopiesQuery, bookId)
+// 	return cnt
+// }
 
 func (s *store) CreateBook(ctx context.Context, book *Book) (err error) {
 

@@ -18,6 +18,7 @@ type Service interface {
 	GenerateJWT(ctx context.Context, Email string, Password string) (tokenString string, err error)
 	DeleteByID(ctx context.Context, id string) (err error)
 	Update(ctx context.Context, req UpdateRequest) (err error)
+	UpdatePassword(ctx context.Context, req ChangePassword) (err error)
 }
 
 type UserService struct {
@@ -119,13 +120,29 @@ func (cs *UserService) Update(ctx context.Context, c UpdateRequest) (err error) 
 	err = cs.store.UpdateUser(ctx, &db.User{
 		First_Name: c.First_Name,
 		Last_Name:  c.Last_Name,
-		Mobile_Num: c.Mobile_Num,
-		Gender:     c.Gender,
-		Password:   c.Password,
 		ID:         c.ID,
 	})
 	if err != nil {
 		cs.logger.Error("Error updating user", "err", err.Error(), "user", c)
+		return
+	}
+
+	return
+}
+
+func (cs *UserService) UpdatePassword(ctx context.Context, c ChangePassword) (err error) {
+	// err = c.Validate()
+	// if err != nil {
+	//  cs.logger.Error("Invalid Request for Password update", "err", err.Error(), "user", c)
+	//  return
+	// }
+
+	err = cs.store.UpdatePassword(ctx, &db.User{
+		ID:       c.ID,
+		Password: c.NewPassword,
+	})
+	if err != nil {
+		cs.logger.Error("Error updating Password", "err", err.Error(), "user", c)
 		return
 	}
 

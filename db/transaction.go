@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 	// "math/big"
 )
@@ -23,6 +24,11 @@ const (
 	updateTransactionQuery     = `UPDATE transactions SET returndate=? WHERE book_id = ? AND user_id =? AND returndate= 0`
 	issueCopyQuery             = `UPDATE book SET currentCopies=currentCopies-1 WHERE id = ? AND currentCopies>0`
 	returnCopyQuery            = `UPDATE book SET currentCopies=currentCopies+1 WHERE id = ?`
+	BookStatusQuery            = `SELECT returndate from transactions WHERE book_id = ? AND user_id =?`
+	GetTotalCopiesQuery        = `SELECT book.totalCopies FROM book
+	LEFT JOIN transactions ON book.id =transactions.book_id`
+	GetCurrentCopiesQuery = `SELECT book.currentCopies FROM book
+	LEFT JOIN transactions ON book.id =transactions.book_id where book.id=?`
 )
 
 type Transaction struct {
@@ -69,6 +75,29 @@ func (s *store) ListTransaction(ctx context.Context) (transactions []Transaction
 		return transactions, ErrTransactionNotExist
 	}
 	return
+}
+
+func (s *store) BookStatus(ctx context.Context, BookId string, UserID string) (res string, err error) {
+	return_date := -1
+	s.db.GetContext(ctx, &return_date, BookStatusQuery, BookId, UserID)
+	fmt.Println(return_date)
+	if return_date == 0 {
+		res = "issued"
+		return res, nil
+	} else {
+		totalcnt := 0
+		currentcnt := 0
+		s.db.GetContext(ctx, &totalcnt, GetTotalCopiesQuery, BookId)
+		s.db.GetContext(ctx, &currentcnt, GetCurrentCopiesQuery, BookId)
+
+		if currentcnt < 1 {
+			res = "Unavailable"
+			return res, nil
+		} else {
+			res = "Available"
+			return res, nil
+		}
+	}
 }
 
 func (s *store) UpdateTransaction(ctx context.Context, transaction *Transaction) (err error) {
