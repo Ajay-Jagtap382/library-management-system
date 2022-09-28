@@ -2,7 +2,6 @@ package users
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Ajay-Jagtap382/library-management-system/db"
 	"github.com/google/uuid"
@@ -56,7 +55,6 @@ func (cs *transactionService) Create(ctx context.Context, c Request) (err error)
 		return
 	}
 	res, _ := cs.store.BookStatus(ctx, c.Book_id, c.User_id)
-	fmt.Println(res)
 	if res == "issued" {
 		return errAlreadyTaken
 	}

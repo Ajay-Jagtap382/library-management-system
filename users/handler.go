@@ -136,7 +136,7 @@ func UpdatePassword(service Service) http.HandlerFunc {
 			}
 		}
 		if !flag {
-			api.Success(rw, http.StatusOK, api.Response{Message: "Wrong pasword"})
+			api.Success(rw, http.StatusOK, api.Response{Message: "Wrong ID or pasword"})
 		}
 
 	})
@@ -149,6 +149,7 @@ func DeleteUserByID(service Service) http.HandlerFunc {
 		err := service.DeleteByID(req.Context(), vars["userId"])
 		if err == errNoUserId {
 			api.Error(rw, http.StatusNotFound, api.Response{Message: err.Error()})
+			return
 		}
 		if err != nil {
 			api.Error(rw, http.StatusInternalServerError, api.Response{Message: err.Error()})

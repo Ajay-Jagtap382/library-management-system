@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
 	// "math/big"
 )
@@ -24,8 +23,12 @@ const (
 	updateTransactionQuery     = `UPDATE transactions SET returndate=? WHERE book_id = ? AND user_id =? AND returndate= 0`
 	issueCopyQuery             = `UPDATE book SET currentCopies=currentCopies-1 WHERE id = ? AND currentCopies>0`
 	returnCopyQuery            = `UPDATE book SET currentCopies=currentCopies+1 WHERE id = ?`
-	BookStatusQuery            = `SELECT returndate from transactions WHERE book_id = ? AND user_id =?`
-	GetTotalCopiesQuery        = `SELECT book.totalCopies FROM book
+	BookStatusQuery            = `SELECT COUNT(*) from transactions WHERE book_id = ? AND user_id =? And returndate=0`
+	UserIdPresentQuery         = `SELECT COUNT(*) FROM user
+	LEFT JOIN transactions ON user.id =transactions.user_id where user.id=?`
+	BookIdPresentQuery = `SELECT COUNT(*) FROM book
+	LEFT JOIN transactions ON book.id =transactions.book_id where book.id=?`
+	GetTotalCopiesQuery = `SELECT book.totalCopies FROM book
 	LEFT JOIN transactions ON book.id =transactions.book_id`
 	GetCurrentCopiesQuery = `SELECT book.currentCopies FROM book
 	LEFT JOIN transactions ON book.id =transactions.book_id where book.id=?`
@@ -44,7 +47,15 @@ func (s *store) CreateTransaction(ctx context.Context, transaction *Transaction)
 
 	now := time.Now().UTC().Unix()
 	transaction.Duedate = int(now) + 864000
-
+	count := -1
+	s.db.GetContext(ctx, &count, UserIdPresentQuery, transaction.User_id)
+	if count < 1 {
+		return ErrUserNotExist
+	}
+	s.db.GetContext(ctx, &count, BookIdPresentQuery, transaction.Book_id)
+	if count < 1 {
+		return ErrBookNotExist
+	}
 	return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
 		_, err = s.db.Exec(
 			createTransactionQuery,
@@ -78,10 +89,10 @@ func (s *store) ListTransaction(ctx context.Context) (transactions []Transaction
 }
 
 func (s *store) BookStatus(ctx context.Context, BookId string, UserID string) (res string, err error) {
-	return_date := -1
-	s.db.GetContext(ctx, &return_date, BookStatusQuery, BookId, UserID)
-	fmt.Println(return_date)
-	if return_date == 0 {
+	count := -1
+	s.db.GetContext(ctx, &count, BookStatusQuery, BookId, UserID)
+
+	if count != 0 {
 		res = "issued"
 		return res, nil
 	} else {
@@ -101,22 +112,38 @@ func (s *store) BookStatus(ctx context.Context, BookId string, UserID string) (r
 }
 
 func (s *store) UpdateTransaction(ctx context.Context, transaction *Transaction) (err error) {
+	count := -1
+	s.db.GetContext(ctx, &count, UserIdPresentQuery, transaction.User_id)
+	if count < 1 {
+		return ErrUserNotExist
+	}
+	s.db.GetContext(ctx, &count, BookIdPresentQuery, transaction.Book_id)
+	if count < 1 {
+		return ErrBookNotExist
+	}
+	s.db.GetContext(ctx, &count, BookStatusQuery, transaction.Book_id, transaction.User_id)
 
-	return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
-		_, err = s.db.Exec(
-			updateTransactionQuery,
-			time.Now().UTC().Unix(),
-			transaction.Book_id,
-			transaction.User_id,
-		)
-		if err != nil {
+	if count != 0 {
+		return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
+			_, err = s.db.Exec(
+				updateTransactionQuery,
+				time.Now().UTC().Unix(),
+				transaction.Book_id,
+				transaction.User_id,
+			)
+			if err != nil {
+				return err
+			}
+
+			_, err = s.db.Exec(
+				returnCopyQuery,
+				transaction.Book_id,
+			)
+			// }
 			return err
-		}
+		})
+	} else {
+		return ErrAlreadyReturn
+	}
 
-		_, err = s.db.Exec(
-			returnCopyQuery,
-			transaction.Book_id,
-		)
-		return err
-	})
 }

@@ -22,6 +22,8 @@ const (
 	updateBookQuery     = `UPDATE book SET bookName=? ,
 	description=?, totalCopies=?, currentCopies=? where id = ?`
 
+	bookidexist = `SELECT COUNT(*) FROM book WHERE book.id = ?`
+
 	//GetTotalCopiesQuery  = `SELECT totalCopies FROM book where id=? `
 
 )
@@ -101,16 +103,24 @@ func (s *store) DeleteBookByID(ctx context.Context, id string) (err error) {
 }
 
 func (s *store) UpdateBook(ctx context.Context, book *Book) (err error) {
+	flag := 0
 
-	return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
-		_, err = s.db.Exec(
-			updateBookQuery,
-			book.BookName,
-			book.Description,
-			book.TotalCopies,
-			book.CurrentCopies,
-			book.ID,
-		)
-		return err
-	})
+	s.db.GetContext(ctx, &flag, bookidexist, book.ID)
+
+	if flag == 0 {
+		return ErrIDNotExist
+	} else {
+
+		return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
+			_, err = s.db.Exec(
+				updateBookQuery,
+				book.BookName,
+				book.Description,
+				book.TotalCopies,
+				book.CurrentCopies,
+				book.ID,
+			)
+			return err
+		})
+	}
 }

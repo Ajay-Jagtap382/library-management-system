@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strings"
 )
 
@@ -18,6 +19,8 @@ const (
 		role
 	)
         VALUES(?,?,?,?,?,?,?,?)`
+
+	idexist = `SELECT COUNT(*) FROM user WHERE user.id = ?`
 
 	listUserQuery        = `SELECT * FROM user`
 	findUserByIDQuery    = `SELECT * FROM user WHERE id = ?`
@@ -102,25 +105,43 @@ func (s *store) DeleteUserByID(ctx context.Context, id string) (err error) {
 
 func (s *store) UpdateUser(ctx context.Context, user *User) (err error) {
 
-	return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
-		_, err = s.db.Exec(
-			updateUserQuery,
-			user.First_Name,
-			user.Last_Name,
-			user.ID,
-		)
-		return err
-	})
+	flag := 0
+
+	s.db.GetContext(ctx, &flag, idexist, user.ID)
+	fmt.Println(flag)
+
+	if flag == 0 {
+		return ErrIDNotExist
+	} else {
+		return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
+			_, err = s.db.Exec(
+				updateUserQuery,
+				user.First_Name,
+				user.Last_Name,
+				user.ID,
+			)
+			return err
+		})
+	}
 }
 
 func (s *store) UpdatePassword(ctx context.Context, user *User) (err error) {
 
-	return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
-		_, err = s.db.Exec(
-			updatePasswordQuery,
-			user.Password,
-			user.ID,
-		)
-		return err
-	})
+	flag := 0
+
+	s.db.GetContext(ctx, &flag, idexist, user.ID)
+
+	if flag == 0 {
+		return ErrIDNotExist
+	} else {
+
+		return Transact(ctx, s.db, &sql.TxOptions{}, func(ctx context.Context) error {
+			_, err = s.db.Exec(
+				updatePasswordQuery,
+				user.Password,
+				user.ID,
+			)
+			return err
+		})
+	}
 }
