@@ -25,7 +25,7 @@ func (cs *bookService) List(ctx context.Context) (response ListResponse, err err
 	books, err := cs.store.ListBooks(ctx)
 	if err == db.ErrUserNotExist {
 		cs.logger.Error("No book present", "err", err.Error())
-		return response, errNoUsers
+		return response, errNoBooks
 	}
 	if err != nil {
 		cs.logger.Error("Error listing categories", "err", err.Error())
@@ -49,7 +49,7 @@ func (cs *bookService) Create(ctx context.Context, c Request) (err error) {
 		BookName:      c.BookName,
 		Description:   c.Description,
 		TotalCopies:   c.TotalCopies,
-		CurrentCopies: c.CurrentCopies,
+		CurrentCopies: c.TotalCopies,
 	})
 	if err != nil {
 		cs.logger.Error("Error creating user", "err", err.Error())
@@ -59,18 +59,21 @@ func (cs *bookService) Create(ctx context.Context, c Request) (err error) {
 }
 
 func (cs *bookService) Update(ctx context.Context, c Request) (err error) {
+	err = c.Validate()
 	if err != nil {
-		cs.logger.Error("Invalid Request for user Update", "err", err.Error(), "user", c)
+		cs.logger.Errorw("Invalid request for user Create", "msg", err.Error(), "user", c)
 		return
 	}
 
 	err = cs.store.UpdateBook(ctx, &db.Book{
-		ID:            c.ID,
-		BookName:      c.BookName,
-		Description:   c.Description,
-		TotalCopies:   c.TotalCopies,
-		CurrentCopies: c.CurrentCopies,
+		ID:          c.ID,
+		BookName:    c.BookName,
+		Description: c.Description,
+		TotalCopies: c.TotalCopies,
 	})
+	if err == db.ErrLessThanPreviousTotal {
+		return ErrLessThanPreviousTotal
+	}
 	if err != nil {
 		cs.logger.Error("Error updating user", "err", err.Error(), "user", c)
 		return
@@ -83,7 +86,7 @@ func (cs *bookService) FindByID(ctx context.Context, id string) (response FindBy
 	book, err := cs.store.FindBookByID(ctx, id)
 	if err == db.ErrUserNotExist {
 		cs.logger.Error("No user present", "err", err.Error())
-		return response, errNoUserId
+		return response, errNoBookId
 	}
 	if err != nil {
 		cs.logger.Error("Error finding user", "err", err.Error(), "user_id", id)
@@ -96,13 +99,17 @@ func (cs *bookService) FindByID(ctx context.Context, id string) (response FindBy
 
 func (cs *bookService) DeleteByID(ctx context.Context, id string) (err error) {
 	err = cs.store.DeleteBookByID(ctx, id)
-	if err == db.ErrUserNotExist {
-		cs.logger.Error("user Not present", "err", err.Error(), "user_id", id)
-		return errNoUserId
+	if err == db.ErrBookNotExist {
+		cs.logger.Error("Book Not present", "err", err.Error(), "book_id", id)
+		return errNoBookId
+	}
+	if err == db.ErrBookExistTransaction {
+		//cs.logger.Error("user Not present", "err", err.Error(), "user_id", id)
+		return ErrBookExistTransaction
 	}
 	if err != nil {
-		cs.logger.Error("Error deleting user", "err", err.Error(), "user_id", id)
-		return
+		// cs.logger.Error("Error deleting Book", "err", err.Error(), "book_id", id)
+		return err
 	}
 
 	return

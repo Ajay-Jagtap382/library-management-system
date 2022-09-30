@@ -60,7 +60,6 @@ func Authorize(handler http.HandlerFunc, role int) http.HandlerFunc {
 
 		//fmt.Println("hiiiii")
 		token := r.Header.Get("Authorization")
-
 		isValid, TokenDatas, err := ValidateToken(token)
 		fmt.Println(isValid)
 		if err != nil {
@@ -128,7 +127,7 @@ func initRouter(dep dependencies) (router *mux.Router) {
 	// Users
 	router.HandleFunc("/users", Authorize(users.CreateUser(dep.UserService), ADMIN)).Methods(http.MethodPost)
 	router.HandleFunc("/users", Authorize(users.GetUser(dep.UserService), ADMIN)).Methods(http.MethodGet)
-	router.HandleFunc("/user/{id}", Authorize(users.GetUserByID(dep.UserService), USER)).Methods(http.MethodGet)
+	router.HandleFunc("/user", Authorize(users.GetUserByID(dep.UserService), USER)).Methods(http.MethodGet)
 	router.HandleFunc("/users", Authorize(users.UpdateUser(dep.UserService), USER)).Methods(http.MethodPut)
 	router.HandleFunc("/user/{userId}", Authorize(users.DeleteUserByID(dep.UserService), ADMIN)).Methods(http.MethodDelete)
 	router.HandleFunc("/users/password/reset", Authorize(users.UpdatePassword(dep.UserService), USER)).Methods(http.MethodPut)
@@ -143,6 +142,7 @@ func initRouter(dep dependencies) (router *mux.Router) {
 	//Transactions
 	router.HandleFunc("/Transactions", Authorize(transaction.CreateTransaction(dep.TransactionService), ADMIN)).Methods(http.MethodPost)
 	router.HandleFunc("/Transactions", Authorize(transaction.GetTransaction(dep.TransactionService), ADMIN)).Methods(http.MethodGet)
+	router.HandleFunc("/Transactions/{id}", Authorize(transaction.GetTransactionByID(dep.TransactionService), USER)).Methods(http.MethodGet)
 	router.HandleFunc("/Transactions", Authorize(transaction.UpdateTransaction(dep.TransactionService), ADMIN)).Methods(http.MethodPut)
 	router.HandleFunc("/bookstatus", Authorize(transaction.GetBookStatus(dep.TransactionService), USER)).Methods(http.MethodGet)
 	return

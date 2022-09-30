@@ -6,6 +6,7 @@ import (
 
 	"github.com/Ajay-Jagtap382/library-management-system/db"
 	// "github.com/Ajay-Jagtap382/library-management-system/server"
+
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -17,8 +18,8 @@ type Service interface {
 	FindByID(ctx context.Context, id string) (response FindByIDResponse, err error)
 	GenerateJWT(ctx context.Context, Email string, Password string) (tokenString string, err error)
 	DeleteByID(ctx context.Context, id string) (err error)
-	Update(ctx context.Context, req UpdateRequest) (err error)
-	UpdatePassword(ctx context.Context, req ChangePassword) (err error)
+	Update(ctx context.Context, req UpdateRequest, TokenDatas TokenData) (err error)
+	UpdatePassword(ctx context.Context, req ChangePassword, TokenDatas TokenData) (err error)
 }
 
 type UserService struct {
@@ -111,7 +112,7 @@ func (cs *UserService) Create(ctx context.Context, c CreateRequest) (err error) 
 	return
 }
 
-func (cs *UserService) Update(ctx context.Context, c UpdateRequest) (err error) {
+func (cs *UserService) Update(ctx context.Context, c UpdateRequest, TokenDatas TokenData) (err error) {
 	if err != nil {
 		cs.logger.Error("Invalid Request for user Update", "err", err.Error(), "user", c)
 		return
@@ -120,7 +121,7 @@ func (cs *UserService) Update(ctx context.Context, c UpdateRequest) (err error) 
 	err = cs.store.UpdateUser(ctx, &db.User{
 		First_Name: c.First_Name,
 		Last_Name:  c.Last_Name,
-		ID:         c.ID,
+		ID:         TokenDatas.Id,
 	})
 	if err != nil {
 		cs.logger.Error("Error updating user", "err", err.Error(), "user", c)
@@ -130,7 +131,7 @@ func (cs *UserService) Update(ctx context.Context, c UpdateRequest) (err error) 
 	return
 }
 
-func (cs *UserService) UpdatePassword(ctx context.Context, c ChangePassword) (err error) {
+func (cs *UserService) UpdatePassword(ctx context.Context, c ChangePassword, TokenDatas TokenData) (err error) {
 	// err = c.Validate()
 	// if err != nil {
 	//  cs.logger.Error("Invalid Request for Password update", "err", err.Error(), "user", c)
@@ -138,7 +139,7 @@ func (cs *UserService) UpdatePassword(ctx context.Context, c ChangePassword) (er
 	// }
 
 	err = cs.store.UpdatePassword(ctx, &db.User{
-		ID:       c.ID,
+		ID:       TokenDatas.Id,
 		Password: c.NewPassword,
 	})
 	if err != nil {
@@ -165,14 +166,20 @@ func (cs *UserService) FindByID(ctx context.Context, id string) (response FindBy
 }
 
 func (cs *UserService) DeleteByID(ctx context.Context, id string) (err error) {
+	// var deleteUser trans.Request
+	// deleteUser,err1 := trans.ListByID(ctx , id)
 	err = cs.store.DeleteUserByID(ctx, id)
 	if err == db.ErrUserNotExist {
 		cs.logger.Error("user Not present", "err", err.Error(), "user_id", id)
 		return errNoUserId
 	}
+	if err == db.ErrTakenUser {
+		//cs.logger.Error("user Not present", "err", err.Error(), "user_id", id)
+		return errTakenUser
+	}
 	if err != nil {
 		// cs.logger.Error("Error deleting user", "err", err.Error(), "user_id", id)
-		return errTakenUser
+		return err
 	}
 
 	return

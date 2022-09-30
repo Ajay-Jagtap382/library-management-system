@@ -18,13 +18,16 @@ const (
 	)
         VALUES(?,?,?,?,?,?)`
 
-	listTransactionQuery       = `SELECT * FROM transactions`
-	deleteTransactionByIDQuery = `DELETE FROM transactions WHERE id = ?`
-	updateTransactionQuery     = `UPDATE transactions SET returndate=? WHERE book_id = ? AND user_id =? AND returndate= 0`
-	issueCopyQuery             = `UPDATE book SET currentCopies=currentCopies-1 WHERE id = ? AND currentCopies>0`
-	returnCopyQuery            = `UPDATE book SET currentCopies=currentCopies+1 WHERE id = ?`
-	BookStatusQuery            = `SELECT COUNT(*) from transactions WHERE book_id = ? AND user_id =? And returndate=0`
-	UserIdPresentQuery         = `SELECT COUNT(*) FROM user
+	listTransactionQuery         = `SELECT * FROM transactions`
+	listTransactionQueryByID     = `SELECT * FROM transactions WHERE user_id=?`
+	listTransactionBookQueryByID = `SELECT * FROM transactions WHERE book_id=?`
+	listTransactionsQueryByID    = `SELECT * FROM transactions WHERE id=?`
+	deleteTransactionByIDQuery   = `DELETE FROM transactions WHERE id = ?`
+	updateTransactionQuery       = `UPDATE transactions SET returndate=? WHERE book_id = ? AND user_id =? AND returndate= 0`
+	issueCopyQuery               = `UPDATE book SET currentCopies=currentCopies-1 WHERE id = ? AND currentCopies>0`
+	returnCopyQuery              = `UPDATE book SET currentCopies=currentCopies+1 WHERE id = ?`
+	BookStatusQuery              = `SELECT COUNT(*) from transactions WHERE book_id = ? AND user_id =? And returndate=0`
+	UserIdPresentQuery           = `SELECT COUNT(*) FROM user
 	LEFT JOIN transactions ON user.id =transactions.user_id where user.id=?`
 	BookIdPresentQuery = `SELECT COUNT(*) FROM book
 	LEFT JOIN transactions ON book.id =transactions.book_id where book.id=?`
@@ -32,6 +35,9 @@ const (
 	LEFT JOIN transactions ON book.id =transactions.book_id`
 	GetCurrentCopiesQuery = `SELECT book.currentCopies FROM book
 	LEFT JOIN transactions ON book.id =transactions.book_id where book.id=?`
+
+	deleteTransactionQuery     = `DELETE from transactions where user_id=?`
+	deleteTransactionBookQuery = `DELETE from transactions where book_id=?`
 )
 
 type Transaction struct {
@@ -84,6 +90,16 @@ func (s *store) ListTransaction(ctx context.Context) (transactions []Transaction
 	})
 	if err == sql.ErrNoRows {
 		return transactions, ErrTransactionNotExist
+	}
+	return
+}
+
+func (s *store) ListTransactionByID(ctx context.Context, id string) (transactions []Transaction, err error) {
+	err = WithDefaultTimeout(ctx, func(ctx context.Context) error {
+		return s.db.SelectContext(ctx, &transactions, listTransactionsQueryByID, id)
+	})
+	if err == sql.ErrNoRows {
+		return nil, ErrTransactionNotExist
 	}
 	return
 }

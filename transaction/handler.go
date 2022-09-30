@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/Ajay-Jagtap382/library-management-system/api"
+	"github.com/gorilla/mux"
 )
 
 // Transaction
@@ -38,6 +39,24 @@ func GetTransaction(service Service) http.HandlerFunc {
 		resp, err := service.List(req.Context())
 		if err == errNoTransaction {
 			api.Error(rw, http.StatusNotFound, api.Response{Message: err.Error()})
+			return
+		}
+		if err != nil {
+			api.Error(rw, http.StatusInternalServerError, api.Response{Message: err.Error()})
+			return
+		}
+
+		api.Success(rw, http.StatusOK, resp)
+	})
+}
+
+func GetTransactionByID(service Service) http.HandlerFunc {
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+
+		resp, err := service.ListByID(req.Context(), vars["id"])
+		if err == errNoTransaction {
+			api.Error(rw, http.StatusNotFound, api.Response{Message: errNoTransaction.Error()})
 			return
 		}
 		if err != nil {

@@ -1,6 +1,8 @@
 package book
 
-import "github.com/Ajay-Jagtap382/library-management-system/db"
+import (
+	"github.com/Ajay-Jagtap382/library-management-system/db"
+)
 
 type Request struct {
 	ID            string `json:"id"`
@@ -22,15 +24,11 @@ func (cr Request) Validate() (err error) {
 	if cr.BookName == "" {
 		return errEmptyName
 	}
+	if cr.Description == "" {
+		return errEmptyDescription
+	}
+	if cr.TotalCopies == 0 {
+		return errZeroCopies
+	}
 	return
 }
-
-// func (ur Request) Validate() (err error) {
-// 	if ur.ID == "" {
-// 		return errEmptyID
-// 	}
-// 	if ur.bookName == "" {
-// 		return errEmptyName
-// 	}
-// 	return
-// }

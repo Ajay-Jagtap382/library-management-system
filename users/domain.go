@@ -33,7 +33,7 @@ type FindByIDResponse struct {
 }
 
 type ChangePassword struct {
-	ID          string `json:"id"`
+	//ID          string `json:"id"`
 	Password    string `json:"password"`
 	NewPassword string `json:"new_password"`
 }
@@ -59,26 +59,8 @@ func (cr CreateRequest) Validate() (err error) {
 			return errInvalidLastName
 		}
 	}
-	if cr.Password == "" {
-		return errEmptyPassword
-	}
-	if len(cr.Password) < 6 {
-		return errMinimumLengthPassword
-	}
-	if cr.Gender == "" || (strings.ToLower(cr.Gender) != "male" && strings.ToLower(cr.Gender) != "female") {
-		return errValideGender
-	}
 	if cr.Email == "" {
 		return errEmptyEmail
-	}
-	if cr.Mobile_Num == "" {
-		return errEmptyMobNo
-	}
-	if cr.Role == "" {
-		return errEmptyRole
-	}
-	if strings.ToLower(cr.Role) != "user" && strings.ToLower(cr.Role) != "admin" {
-		return errRoleType
 	}
 	// _, b := mail.ParseAddress(cr.Email)
 	// if b != nil {
@@ -118,6 +100,24 @@ func (cr CreateRequest) Validate() (err error) {
 		if !unicode.IsNumber(j) {
 			return errInvalidMobNo
 		}
+	}
+	if cr.Password == "" {
+		return errEmptyPassword
+	}
+	if len(cr.Password) < 6 {
+		return errMinimumLengthPassword
+	}
+	if cr.Gender == "" || (strings.ToLower(cr.Gender) != "male" && strings.ToLower(cr.Gender) != "female") {
+		return errValideGender
+	}
+	if cr.Mobile_Num == "" {
+		return errEmptyMobNo
+	}
+	if cr.Role == "" {
+		return errEmptyRole
+	}
+	if strings.ToLower(cr.Role) != "user" && strings.ToLower(cr.Role) != "admin" {
+		return errRoleType
 	}
 	return
 }

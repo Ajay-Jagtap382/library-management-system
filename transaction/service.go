@@ -10,6 +10,7 @@ import (
 
 type Service interface {
 	List(ctx context.Context) (response ListResponse, err error)
+	ListByID(ctx context.Context, id string) (response ListResponse, err error)
 	BookStatus(ctx context.Context, c RequestStatus) (response string, err error)
 	Create(ctx context.Context, req Request) (err error)
 	DeleteByID(ctx context.Context, id string) (err error)
@@ -23,7 +24,21 @@ type transactionService struct {
 
 func (cs *transactionService) List(ctx context.Context) (response ListResponse, err error) {
 	transaction, err := cs.store.ListTransaction(ctx)
-	if err == db.ErrUserNotExist {
+	if err == db.ErrTransactionNotExist {
+		cs.logger.Error("No Transaction present", "err", err.Error())
+		return response, errNoTransaction
+	}
+	if err != nil {
+		cs.logger.Error("Error listing Transactions", "err", err.Error())
+		return
+	}
+	response.Transaction = transaction
+	return
+}
+
+func (cs *transactionService) ListByID(ctx context.Context, id string) (response ListResponse, err error) {
+	transaction, err := cs.store.ListTransactionByID(ctx, id)
+	if err == db.ErrTransactionNotExist {
 		cs.logger.Error("No Transaction present", "err", err.Error())
 		return response, errNoTransaction
 	}
@@ -63,12 +78,10 @@ func (cs *transactionService) Create(ctx context.Context, c Request) (err error)
 
 	err = cs.store.CreateTransaction(ctx, &db.Transaction{
 
-		ID:         c.ID,
-		Issuedate:  c.Issuedate,
-		Duedate:    c.Duedate,
-		Returndate: c.Returndate,
-		Book_id:    c.Book_id,
-		User_id:    c.User_id,
+		ID:      c.ID,
+		Duedate: c.Duedate,
+		Book_id: c.Book_id,
+		User_id: c.User_id,
 	})
 	if err != nil {
 		cs.logger.Error("Error creating transaction", "err", err.Error())
@@ -84,9 +97,8 @@ func (cs *transactionService) Update(ctx context.Context, c Request) (err error)
 	}
 
 	err = cs.store.UpdateTransaction(ctx, &db.Transaction{
-		Returndate: c.Returndate,
-		Book_id:    c.Book_id,
-		User_id:    c.User_id,
+		Book_id: c.Book_id,
+		User_id: c.User_id,
 	})
 	if err != nil {
 		cs.logger.Error("Error updating transaction", "err", err.Error(), "user", c)

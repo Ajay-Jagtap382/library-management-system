@@ -35,7 +35,7 @@ func CreateBook(service Service) http.HandlerFunc {
 func GetBook(service Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		resp, err := service.List(req.Context())
-		if err == errNoUsers {
+		if err == errNoBooks {
 			api.Error(rw, http.StatusNotFound, api.Response{Message: err.Error()})
 			return
 		}
@@ -54,7 +54,7 @@ func GetBookByID(service Service) http.HandlerFunc {
 
 		resp, err := service.FindByID(req.Context(), vars["id"])
 
-		if err == errNoUserId {
+		if err == errNoBookId {
 			api.Error(rw, http.StatusNotFound, api.Response{Message: err.Error()})
 			return
 		}
@@ -72,7 +72,7 @@ func DeleteBookByID(service Service) http.HandlerFunc {
 		vars := mux.Vars(req)
 
 		err := service.DeleteByID(req.Context(), vars["id"])
-		if err == errNoUserId {
+		if err == errNoBookId {
 			api.Error(rw, http.StatusNotFound, api.Response{Message: err.Error()})
 			return
 		}
@@ -110,5 +110,5 @@ func UpdateBook(service Service) http.HandlerFunc {
 }
 
 func isBadRequest(err error) bool {
-	return err == errEmptyName || err == errEmptyID
+	return err == errEmptyName
 }

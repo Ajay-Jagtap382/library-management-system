@@ -2,10 +2,14 @@ package users
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"time"
 
 	"net/http"
 
 	"github.com/Ajay-Jagtap382/library-management-system/api"
+	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/mux"
 )
 
@@ -14,7 +18,53 @@ type Authentication struct {
 	Password string `json:"password"`
 }
 
+type TokenData struct {
+	Id    string
+	Email string
+	Role  string
+}
+
+const (
+	SUPERADMIN = iota
+	ADMIN
+	USER
+)
+
+var RoleMap = map[string]int{"superadmin": SUPERADMIN, "admin": ADMIN, "user": USER}
+
 var cs UserService
+
+func ValidateToken(tokenString string) (isValid bool, tokenData TokenData, err error) {
+	token, err := jwt.ParseWithClaims(
+		tokenString,
+		&JWTClaim{},
+		func(token *jwt.Token) (interface{}, error) {
+			return []byte(jwtKey), nil
+		},
+	)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	claims, ok := token.Claims.(*JWTClaim)
+	if !ok {
+		err = errors.New("couldn't parse claims")
+		return
+	}
+	if claims.ExpiresAt < time.Now().Local().Unix() {
+		err = errors.New("token expired")
+		return
+	}
+
+	isValid = true
+
+	tokenData = TokenData{
+		Id:    claims.Id,
+		Email: claims.Email,
+		Role:  claims.Role,
+	}
+	return
+}
 
 func Login(service Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
@@ -43,11 +93,17 @@ func CreateUser(service Service) http.HandlerFunc {
 			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
 			return
 		}
-
 		err = c.Validate()
 		if err != nil {
 			//cs.logger.Errorw("Invalid request for user Create", "msg", err.Error(), "user", c)
 			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
+			return
+		}
+		token := req.Header.Get("Authorization")
+		_, TokenDatas, _ := ValidateToken(token)
+
+		if TokenDatas.Role == "admin" && c.Role == "admin" {
+			api.Error(rw, http.StatusBadRequest, api.Response{Message: errNotAccess.Error()})
 			return
 		}
 
@@ -84,9 +140,17 @@ func GetUser(service Service) http.HandlerFunc {
 
 func GetUserByID(service Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		vars := mux.Vars(req)
+		// vars := mux.Vars(req)
 
-		resp, err := service.FindByID(req.Context(), vars["id"])
+		token := req.Header.Get("Authorization")
+		_, TokenDatas, _ := ValidateToken(token)
+
+		// if TokenDatas.Id != vars["id"] {
+		// 	api.Error(rw, http.StatusBadRequest, api.Response{Message: errWrongUser.Error()})
+		// 	return
+		// }
+
+		resp, err := service.FindByID(req.Context(), TokenDatas.Id)
 
 		if err == errNoUserId {
 			api.Error(rw, http.StatusNotFound, api.Response{Message: err.Error()})
@@ -103,14 +167,20 @@ func GetUserByID(service Service) http.HandlerFunc {
 
 func UpdatePassword(service Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		token := req.Header.Get("Authorization")
+		_, TokenDatas, _ := ValidateToken(token)
 		var c ChangePassword
-		resp, err := service.List(req.Context())
+		err := json.NewDecoder(req.Body).Decode(&c)
 
 		if err != nil {
 			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
 			return
 		}
-		err = json.NewDecoder(req.Body).Decode(&c)
+		if len(c.NewPassword) < 6 {
+			api.Error(rw, http.StatusBadRequest, api.Response{Message: errMinimumLengthPassword.Error()})
+			return
+		}
+		resp, err := service.List(req.Context())
 
 		if err != nil {
 			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
@@ -119,9 +189,9 @@ func UpdatePassword(service Service) http.HandlerFunc {
 		flag := false
 
 		for _, v := range resp.Users {
-			if v.ID == c.ID && v.Password == c.Password {
+			if v.ID == TokenDatas.Id && v.Password == c.Password {
 				flag = true
-				err = service.UpdatePassword(req.Context(), c)
+				err = service.UpdatePassword(req.Context(), c, TokenDatas)
 				if isBadRequest(err) {
 					api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
 					return
@@ -145,8 +215,23 @@ func UpdatePassword(service Service) http.HandlerFunc {
 func DeleteUserByID(service Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
+		token := req.Header.Get("Authorization")
+		_, TokenDatas, _ := ValidateToken(token)
 
-		err := service.DeleteByID(req.Context(), vars["userId"])
+		// fmt.Println(TokenDatas.Role)
+		// fmt.Println(vars["userId"])
+		role, err := service.FindByID(req.Context(), vars["userId"])
+		if err != nil {
+			api.Error(rw, http.StatusNotFound, api.Response{Message: errNoUsers.Error()})
+			return
+		}
+
+		if RoleMap[TokenDatas.Role] >= RoleMap[role.User.Role] {
+			api.Error(rw, http.StatusNotFound, api.Response{Message: errNotAccess.Error()})
+			return
+		}
+
+		err = service.DeleteByID(req.Context(), vars["userId"])
 		if err == errNoUserId {
 			api.Error(rw, http.StatusNotFound, api.Response{Message: err.Error()})
 			return
@@ -162,6 +247,8 @@ func DeleteUserByID(service Service) http.HandlerFunc {
 
 func UpdateUser(service Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		token := req.Header.Get("Authorization")
+		_, TokenDatas, _ := ValidateToken(token)
 		var c UpdateRequest
 		err := json.NewDecoder(req.Body).Decode(&c)
 		if err != nil {
@@ -169,7 +256,7 @@ func UpdateUser(service Service) http.HandlerFunc {
 			return
 		}
 
-		err = service.Update(req.Context(), c)
+		err = service.Update(req.Context(), c, TokenDatas)
 		if isBadRequest(err) {
 			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
 			return

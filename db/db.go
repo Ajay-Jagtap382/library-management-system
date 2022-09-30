@@ -34,6 +34,7 @@ type Storer interface {
 
 	CreateTransaction(ctx context.Context, transaction *Transaction) (err error)
 	ListTransaction(ctx context.Context) (transactions []Transaction, err error)
+	ListTransactionByID(ctx context.Context, id string) (transactions []Transaction, err error)
 	UpdateTransaction(ctx context.Context, transaction *Transaction) (err error)
 	BookStatus(ctx context.Context, BookId string, UserID string) (res string, err error)
 }
