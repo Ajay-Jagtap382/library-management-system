@@ -14,6 +14,7 @@ type Service interface {
 	FindByID(ctx context.Context, id string) (response FindByIDResponse, err error)
 	DeleteByID(ctx context.Context, id string) (err error)
 	Update(ctx context.Context, req Request) (err error)
+	BookStatus(ctx context.Context, BookID string, UserID string) (response string, err error)
 }
 
 type bookService struct {
@@ -94,6 +95,15 @@ func (cs *bookService) FindByID(ctx context.Context, id string) (response FindBy
 	}
 
 	response.Book = book
+	return
+}
+
+func (cs *bookService) BookStatus(ctx context.Context, BookID string, UserID string) (response string, err error) {
+	response, err = cs.store.BookStatus(ctx, BookID, UserID)
+	if err != nil {
+		cs.logger.Error("Error listing Status", "err", err.Error())
+		return
+	}
 	return
 }
 

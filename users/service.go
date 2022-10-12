@@ -2,10 +2,15 @@ package users
 
 import (
 	"context"
+	// "crypto/aes"
+	// "crypto/cipher"
+	// "encoding/base64"
+	"fmt"
 	"time"
 
 	"github.com/Ajay-Jagtap382/library-management-system/db"
 	// "github.com/Ajay-Jagtap382/library-management-system/server"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
@@ -48,7 +53,9 @@ func (cs *UserService) GenerateJWT(ctx context.Context, Email string, Password s
 	// 	cs.logger.Error("Error finding user", "err", err.Error(), "email", Email)
 	// 	return "", err
 	// }
-	if Password != user.Password {
+	dbPassKey := []byte(user.Password)
+	getpasskey := []byte(Password)
+	if bcrypt.CompareHashAndPassword(dbPassKey, getpasskey) != nil {
 		// cs.logger.Error("Wrong Password", "err", err.Error())
 		return "", errWrongPassword
 	}
@@ -81,6 +88,28 @@ func (cs *UserService) List(ctx context.Context) (response ListResponse, err err
 	return
 }
 
+// var bytes = []byte{35, 46, 57, 24, 85, 35, 24, 74, 87, 35, 88, 98, 66, 32, 14, 05}
+
+// // This should be in an env file in production
+// const MySecret string = "abc&1*~#^2^#s0^=)^^7%b34"
+
+// func Encode(b []byte) string {
+// 	return base64.StdEncoding.EncodeToString(b)
+// }
+
+// // Encrypt method is to encrypt or hide any classified text
+// func Encrypt(text, MySecret string) (string, error) {
+// 	block, err := aes.NewCipher([]byte(MySecret))
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	plainText := []byte(text)
+// 	cfb := cipher.NewCFBEncrypter(block, bytes)
+// 	cipherText := make([]byte, len(plainText))
+// 	cfb.XORKeyStream(cipherText, plainText)
+// 	return Encode(cipherText), nil
+// }
+
 func (cs *UserService) Create(ctx context.Context, c CreateRequest) (err error) {
 	// err = c.Validate()
 	// if err != nil {
@@ -95,13 +124,22 @@ func (cs *UserService) Create(ctx context.Context, c CreateRequest) (err error) 
 	uuidgen := uuid.New()
 	c.ID = uuidgen.String()
 
+	// PasswordEnrc, err := Encrypt(c.Password, MySecret)
+
+	if err != nil {
+		fmt.Println("error encrypting your classified text: ", err)
+	}
+
+	passkey := []byte(c.Password)
+	hashedPassword, _ := bcrypt.GenerateFromPassword(passkey, bcrypt.DefaultCost)
+
 	err = cs.store.CreateUser(ctx, &db.User{
 		ID:         c.ID,
 		First_Name: c.First_Name,
 		Last_Name:  c.Last_Name,
 		Mobile_Num: c.Mobile_Num,
 		Email:      c.Email,
-		Password:   c.Password,
+		Password:   string(hashedPassword),
 		Gender:     c.Gender,
 		Role:       c.Role,
 	})
@@ -138,9 +176,11 @@ func (cs *UserService) UpdatePassword(ctx context.Context, c ChangePassword, Tok
 	//  return
 	// }
 
+	passkey := []byte(c.NewPassword)
+	hashedPassword, _ := bcrypt.GenerateFromPassword(passkey, bcrypt.DefaultCost)
 	err = cs.store.UpdatePassword(ctx, &db.User{
 		ID:       TokenDatas.Id,
-		Password: c.NewPassword,
+		Password: string(hashedPassword),
 	})
 	if err != nil {
 		cs.logger.Error("Error updating Password", "err", err.Error(), "user", c)

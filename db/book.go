@@ -20,7 +20,7 @@ const (
 	findBookByIDQuery   = `SELECT * FROM book WHERE id = ?`
 	deleteBookByIDQuery = `DELETE FROM book WHERE id = ?`
 	updateBookQuery     = `UPDATE book SET bookName=? ,
-	description=?, totalCopies=? where id = ?`
+	description=?, totalCopies=? , currentCopies=? where id = ?`
 
 	bookidexist = `SELECT COUNT(*) FROM book WHERE book.id = ?`
 
@@ -135,11 +135,17 @@ func (s *store) UpdateBook(ctx context.Context, book *Book) (err error) {
 			if tempBook.TotalCopies > book.TotalCopies {
 				return ErrLessThanPreviousTotal
 			}
+			totalcnt := 0
+			currentcnt := 0
+			s.db.GetContext(ctx, &totalcnt, GetTotalCopiesQuery, book.ID)
+			s.db.GetContext(ctx, &currentcnt, GetCurrentCopiesQuery, book.ID)
+			book.CurrentCopies = currentcnt + (book.TotalCopies - totalcnt)
 			_, err = s.db.Exec(
 				updateBookQuery,
 				book.BookName,
 				book.Description,
 				book.TotalCopies,
+				book.CurrentCopies,
 				book.ID,
 			)
 			return err

@@ -16,6 +16,15 @@ type RequestStatus struct {
 	BookID string `json:"book_id"`
 }
 
+type Transactionresp struct {
+	ID         string `db:"id"`
+	Issuedate  string
+	Duedate    string
+	Returndate string
+	Book_id    string `db:"book_id"`
+	User_id    string `db:"user_id"`
+}
+
 type ListResponse struct {
 	Transaction []db.Transaction `json:"transaction"`
 }

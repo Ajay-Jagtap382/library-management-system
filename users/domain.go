@@ -28,6 +28,15 @@ type CreateRequest struct {
 	Role       string `json:"role"`
 }
 
+type Userresp struct {
+	First_Name string `db:"first_name"`
+	Last_Name  string `db:"last_name"`
+	Mobile_Num string `db:"mobile_num"`
+	Email      string `db:"email"`
+	Gender     string `db:"gender"`
+	Role       string `db:"role"`
+}
+
 type FindByIDResponse struct {
 	User db.User `json:"user"`
 }

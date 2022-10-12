@@ -11,6 +11,7 @@ import (
 	"github.com/Ajay-Jagtap382/library-management-system/api"
 	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/mux"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Authentication struct {
@@ -134,7 +135,20 @@ func GetUser(service Service) http.HandlerFunc {
 			return
 		}
 
-		api.Success(rw, http.StatusOK, resp)
+		var Userrrespo []Userresp
+
+		for _, j := range resp.Users {
+			var Userr Userresp
+			Userr.First_Name = j.First_Name
+			Userr.Last_Name = j.Last_Name
+			Userr.Mobile_Num = j.Mobile_Num
+			Userr.Email = j.Email
+			Userr.Gender = j.Gender
+			Userr.Role = j.Role
+			Userrrespo = append(Userrrespo, Userr)
+		}
+
+		api.Success(rw, http.StatusOK, Userrrespo)
 	})
 }
 
@@ -161,7 +175,15 @@ func GetUserByID(service Service) http.HandlerFunc {
 			return
 		}
 
-		api.Success(rw, http.StatusOK, resp)
+		var Userr Userresp
+		Userr.First_Name = resp.User.First_Name
+		Userr.Last_Name = resp.User.Last_Name
+		Userr.Mobile_Num = resp.User.Mobile_Num
+		Userr.Email = resp.User.Email
+		Userr.Gender = resp.User.Gender
+		Userr.Role = resp.User.Role
+
+		api.Success(rw, http.StatusOK, Userr)
 	})
 }
 
@@ -188,8 +210,17 @@ func UpdatePassword(service Service) http.HandlerFunc {
 		}
 		flag := false
 
+		// PasswordEnrc, err := Encrypt(c.Password, MySecret)
+
+		if err != nil {
+			fmt.Println("error encrypting your classified text: ", err)
+		}
+
+		cPasswordByte := []byte(c.Password)
+
 		for _, v := range resp.Users {
-			if v.ID == TokenDatas.Id && v.Password == c.Password {
+			vPasswordByte := []byte(v.Password)
+			if v.ID == TokenDatas.Id && bcrypt.CompareHashAndPassword(vPasswordByte, cPasswordByte) == nil {
 				flag = true
 				err = service.UpdatePassword(req.Context(), c, TokenDatas)
 				if isBadRequest(err) {

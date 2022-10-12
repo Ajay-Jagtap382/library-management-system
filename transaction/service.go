@@ -52,12 +52,8 @@ func (cs *transactionService) ListByID(ctx context.Context, id string) (response
 
 func (cs *transactionService) BookStatus(ctx context.Context, c RequestStatus) (response string, err error) {
 	response, err = cs.store.BookStatus(ctx, c.BookID, c.UserID)
-	if err == db.ErrUserNotExist {
-		cs.logger.Error("No Transaction present", "err", err.Error())
-		return response, errNoTransaction
-	}
 	if err != nil {
-		cs.logger.Error("Error listing Transactions", "err", err.Error())
+		cs.logger.Error("Error listing Status", "err", err.Error())
 		return
 	}
 	return
@@ -79,7 +75,6 @@ func (cs *transactionService) Create(ctx context.Context, c Request) (err error)
 	err = cs.store.CreateTransaction(ctx, &db.Transaction{
 
 		ID:      c.ID,
-		Duedate: c.Duedate,
 		Book_id: c.Book_id,
 		User_id: c.User_id,
 	})

@@ -12,6 +12,12 @@ type Request struct {
 	CurrentCopies int    `json:"currentCopies"`
 }
 
+type Bookres struct {
+	BookName    string `db:"bookName"`
+	Description string `db:"description"`
+	BookStatus  string
+}
+
 type FindByIDResponse struct {
 	Book db.Book `json:"book"`
 }

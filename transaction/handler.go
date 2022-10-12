@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/Ajay-Jagtap382/library-management-system/api"
 	"github.com/gorilla/mux"
@@ -34,6 +36,14 @@ func CreateTransaction(service Service) http.HandlerFunc {
 	})
 }
 
+func unixToDate(uni int) string {
+	unikey := strconv.Itoa(uni)
+	i, _ := strconv.ParseInt(unikey, 10, 64)
+	tm := time.Unix(i, 0)
+	dateString := tm.Format("2006-01-02 15:04:05")
+	return dateString
+}
+
 func GetTransaction(service Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		resp, err := service.List(req.Context())
@@ -46,7 +56,24 @@ func GetTransaction(service Service) http.HandlerFunc {
 			return
 		}
 
-		api.Success(rw, http.StatusOK, resp)
+		var respo []Transactionresp
+		for _, j := range resp.Transaction {
+
+			var res Transactionresp
+			res.ID = j.ID
+			res.Issuedate = unixToDate(j.Issuedate)
+			if j.Returndate != 0 {
+				res.Returndate = unixToDate(j.Returndate)
+			} else {
+				res.Returndate = strconv.Itoa(j.Returndate)
+			}
+			res.Duedate = unixToDate(j.Duedate)
+			res.Book_id = j.Book_id
+			res.User_id = j.User_id
+			respo = append(respo, res)
+		}
+
+		api.Success(rw, http.StatusOK, respo)
 	})
 }
 
@@ -64,7 +91,24 @@ func GetTransactionByID(service Service) http.HandlerFunc {
 			return
 		}
 
-		api.Success(rw, http.StatusOK, resp)
+		var respo []Transactionresp
+		for _, j := range resp.Transaction {
+
+			var res Transactionresp
+			res.ID = j.ID
+			res.Issuedate = unixToDate(j.Issuedate)
+			if j.Returndate != 0 {
+				res.Returndate = unixToDate(j.Returndate)
+			} else {
+				res.Returndate = strconv.Itoa(j.Returndate)
+			}
+			res.Duedate = unixToDate(j.Duedate)
+			res.Book_id = j.Book_id
+			res.User_id = j.User_id
+			respo = append(respo, res)
+		}
+
+		api.Success(rw, http.StatusOK, respo)
 	})
 }
 

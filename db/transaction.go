@@ -18,7 +18,7 @@ const (
 	)
         VALUES(?,?,?,?,?,?)`
 
-	listTransactionQuery         = `SELECT * FROM transactions`
+	listTransactionQuery         = `SELECT * from transactions order by (duedate-returndate) DESC`
 	listTransactionQueryByID     = `SELECT * FROM transactions WHERE user_id=?`
 	listTransactionBookQueryByID = `SELECT * FROM transactions WHERE book_id=?`
 	listTransactionsQueryByID    = `SELECT * FROM transactions WHERE id=?`
@@ -32,7 +32,7 @@ const (
 	BookIdPresentQuery = `SELECT COUNT(*) FROM book
 	LEFT JOIN transactions ON book.id =transactions.book_id where book.id=?`
 	GetTotalCopiesQuery = `SELECT book.totalCopies FROM book
-	LEFT JOIN transactions ON book.id =transactions.book_id`
+	LEFT JOIN transactions ON book.id =transactions.book_id where book.id=?`
 	GetCurrentCopiesQuery = `SELECT book.currentCopies FROM book
 	LEFT JOIN transactions ON book.id =transactions.book_id where book.id=?`
 
