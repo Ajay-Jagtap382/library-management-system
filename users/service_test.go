@@ -1,40 +1,53 @@
-package users_test
+package users
 
-// import (
-// 	"context"
-// 	"errors"
-// 	"testing"
+import (
+	"context"
+	"testing"
 
-// 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
-// 	"github.com/joshsoftware/golang-boilerplate/app"
-// 	"github.com/joshsoftware/golang-boilerplate/db"
-// 	"github.com/stretchr/testify/assert"
-// )
+	"github.com/Ajay-Jagtap382/library-management-system/app"
+	"github.com/Ajay-Jagtap382/library-management-system/db/mocks"
+)
 
-// func TestSuccessfullCreateService(t *testing.T) {
-// 	app.InitLogger()
-// 	sm := &db.StorerMock{}
-// 	l := app.GetLogger()
-// 	cs := NewService(sm, l)
+func TestSuccessfullCreateService(t *testing.T) {
+	app.InitLogger()
+	l := app.GetLogger()
 
-// 	ctx := context.Background()
-// 	assert := assert.New(t)
+	sm := mocks.NewStorer(t)
+	cs := NewService(sm, l)
 
-// 	var tests = []struct {
-// 		contx    context.Context
-// 		req      CreateRequest
-// 		expected error
-// 	}{
-// 		{ctx, CreateRequest{Name: "Sports"}, nil},
-// 		{ctx, CreateRequest{Name: "Reading"}, nil},
-// 	}
-// 	for _, test := range tests {
-// 		sm.On("CreateCategory", test.contx, mock.Anything).Return(nil)
-// 		assert.Equal(cs.Create(test.contx, test.req), test.expected)
-// 		sm.AssertExpectations(t)
-// 	}
-// }
+	// ctx := context.Background()
+	// assert := assert.New(t)
+
+	var tests = []struct {
+		ctx     context.Context
+		req     CreateRequest
+		err     error
+		exp_err error
+	}{
+		{
+			ctx:     context.Background(),
+			req:     CreateRequest{},
+			err:     nil,
+			exp_err: nil,
+		},
+		// {
+		// 	ctx:     context.Background(),
+		// 	req:     CreateRequest{},
+		// 	err:     errors.New("my_err"),
+		// 	exp_err: errors.New("Error creating user"),
+		// },
+	}
+	for _, test := range tests {
+		sm.On("CreateUser", test.ctx, mock.Anything).Return(test.err)
+		err := cs.Create(test.ctx, test.req)
+
+		assert.ErrorIs(t, err, test.exp_err)
+		// sm.AssertExpectations(t)
+	}
+}
 
 // func TestCreateServiceWhenEmptyName(t *testing.T) {
 // 	app.InitLogger()

@@ -286,6 +286,12 @@ func UpdateUser(service Service) http.HandlerFunc {
 			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
 			return
 		}
+		err = c.Validate()
+		if err != nil {
+			//cs.logger.Errorw("Invalid request for user Create", "msg", err.Error(), "user", c)
+			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
+			return
+		}
 
 		err = service.Update(req.Context(), c, TokenDatas)
 		if isBadRequest(err) {

@@ -3,7 +3,6 @@ package users_test
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -30,28 +29,26 @@ func makeHTTPCall(handler http.HandlerFunc, method, path, body string) (rr *http
 // Create:
 func TestSuccessfullCreate(t *testing.T) {
 	cs := &mocks.Service{}
-	cs.On("Create", mock.Anything, mock.Anything).Return(nil, errors.New("Sucess"))
+	cs.On("Create", mock.Anything, mock.Anything).Return(nil)
 
 	rr := makeHTTPCall(users.CreateUser(cs), http.MethodPost, "/users", `{
 	"first_name": "abhijeet",
     "email": "abhijeet@gmail.com",
     "last_name": "dhumal",
     "gender": "Male",
-    "mobile_num": "9956861238",
-    "password": "abhi",
+    "mobile_num": "9956861235",
+    "password": "abhi12345",
     "role": "admin"}`)
-
-	fmt.Println("Account Success")
-
 	checkResponseCode(t, http.StatusCreated, rr.Code)
 	cs.AssertExpectations(t)
+
 }
 
 func TestCreateWhenInvalidRequestBody(t *testing.T) {
 	cs := &mocks.Service{}
 
 	rr := makeHTTPCall(users.CreateUser(cs), http.MethodPost, "/users", `{
-		"first_name": "abhijeet"
+		"first_name": "abhijeet",
 		"email": "abhi@gmail.com",
 		"last_name": "dhumal",
 		"gender": "Male",
@@ -92,16 +89,6 @@ func TestSuccessfullList(t *testing.T) {
 	cs.AssertExpectations(t)
 }
 
-// func TestListWhenNoCategories(t *testing.T) {
-// 	cs := &CategoryServiceMock{}
-// 	cs.On("List", mock.Anything).Return(mock.Anything, errNoCategories)
-
-// 	rr := makeHTTPCall(List(cs), http.MethodGet, "/categories", "")
-
-// 	checkResponseCode(t, http.StatusNotFound, rr.Code)
-// 	cs.AssertExpectations(t)
-// }
-
 func TestListInternalError(t *testing.T) {
 	var user users.ListResponse
 	cs := &mocks.Service{}
@@ -113,43 +100,26 @@ func TestListInternalError(t *testing.T) {
 	cs.AssertExpectations(t)
 }
 
-// func TestSuccessfullFindByID(t *testing.T) {
-// 	cs := &CategoryServiceMock{}
-// 	cs.On("FindByID", mock.Anything, mock.Anything).Return(mock.Anything, nil)
+func TestSuccessfullFindByID(t *testing.T) {
+	var user users.FindByIDResponse
+	cs := &mocks.Service{}
+	cs.On("FindByID", mock.Anything, mock.Anything).Return(user, nil)
 
-// 	rr := makeHTTPCall(FindByID(cs), http.MethodGet, "/categories/1", "")
+	rr := makeHTTPCall(users.GetUserByID(cs), http.MethodGet, "/user", "")
 
-// 	checkResponseCode(t, http.StatusOK, rr.Code)
-// 	cs.AssertExpectations(t)
-// }
+	checkResponseCode(t, http.StatusOK, rr.Code)
+	cs.AssertExpectations(t)
+}
 
-// func TestFindByIDWhenIDNotExist(t *testing.T) {
-// 	cs := &CategoryServiceMock{}
-// 	cs.On("FindByID", mock.Anything, mock.Anything).Return(mock.Anything, errNoCategoryId)
-
-// 	rr := makeHTTPCall(FindByID(cs), http.MethodGet, "/categories/1", "")
-
-// 	checkResponseCode(t, http.StatusNotFound, rr.Code)
-// 	cs.AssertExpectations(t)
-// }
-
-// func TestFindByIDWhenInternalError(t *testing.T) {
-// 	cs := &CategoryServiceMock{}
-// 	cs.On("FindByID", mock.Anything, mock.Anything).Return(mock.Anything, errors.New("Internal Error"))
-
-// 	rr := makeHTTPCall(FindByID(cs), http.MethodGet, "/categories/1", "")
-
-// 	checkResponseCode(t, http.StatusInternalServerError, rr.Code)
-// 	cs.AssertExpectations(t)
-// }
-
-// //DeleteByID
+//DeleteByID
 // func TestSuccessfullDeleteByID(t *testing.T) {
-// 	cs := &CategoryServiceMock{}
+// 	var user users.FindByIDResponse
+// 	cs := &mocks.Service{}
 
+// 	cs.On("FindByID", mock.Anything, mock.Anything).Return(user, nil)
 // 	cs.On("DeleteByID", mock.Anything, mock.Anything).Return(nil)
 
-// 	rr := makeHTTPCall(DeleteByID(cs), http.MethodDelete, "/categories/1", "")
+// 	rr := makeHTTPCall(users.DeleteUserByID(cs), http.MethodDelete, "/user/18a758cb-e285-4dd1-9cd9-1b9c59d783bb", "")
 
 // 	checkResponseCode(t, http.StatusOK, rr.Code)
 // 	cs.AssertExpectations(t)
@@ -175,51 +145,46 @@ func TestListInternalError(t *testing.T) {
 // 	cs.AssertExpectations(t)
 // }
 
-// func TestSuccessfullUpdate(t *testing.T) {
-// 	cs := &CategoryServiceMock{}
-// 	cs.On("Update", mock.Anything, mock.Anything).Return(nil)
+func TestSuccessfullUpdate(t *testing.T) {
+	cs := &mocks.Service{}
+	cs.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
-// 	rr := makeHTTPCall(Update(cs), http.MethodPut, "/categories", `{"id":"1", "name":"sports"}`)
+	rr := makeHTTPCall(users.UpdateUser(cs), http.MethodPut, "/users", `{"first_name": "Jayesh",
+    "last_name": "lohar"}`)
 
-// 	checkResponseCode(t, http.StatusOK, rr.Code)
-// 	cs.AssertExpectations(t)
-// }
+	checkResponseCode(t, http.StatusOK, rr.Code)
+	cs.AssertExpectations(t)
+}
 
-// func TestUpdateWhenInvalidRequestBody(t *testing.T) {
-// 	cs := &CategoryServiceMock{}
+func TestUpdateWhenEmptyFirstName(t *testing.T) {
+	cs := &mocks.Service{}
+	//cs.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("User first name must be present"))
 
-// 	rr := makeHTTPCall(Update(cs), http.MethodPut, "/categories", `{"id":"1", "name":"sports",}`)
+	rr := makeHTTPCall(users.UpdateUser(cs), http.MethodPut, "/users", `{"first_name": "",
+    "last_name": "lohar"}`)
 
-// 	checkResponseCode(t, http.StatusBadRequest, rr.Code)
-// 	cs.AssertExpectations(t)
-// }
+	checkResponseCode(t, http.StatusBadRequest, rr.Code)
+	cs.AssertExpectations(t)
+}
 
-// func TestUpdateWhenEmptyID(t *testing.T) {
-// 	cs := &CategoryServiceMock{}
-// 	cs.On("Update", mock.Anything, mock.Anything).Return(errEmptyID)
+func TestUpdateWhenEmptyLastName(t *testing.T) {
+	cs := &mocks.Service{}
+	//cs.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("User first name must be present"))
 
-// 	rr := makeHTTPCall(Update(cs), http.MethodPut, "/categories", `{"name":"Sports"}`)
+	rr := makeHTTPCall(users.UpdateUser(cs), http.MethodPut, "/users", `{"first_name": "Jayesh",
+    "last_name": ""}`)
 
-// 	checkResponseCode(t, http.StatusBadRequest, rr.Code)
-// 	cs.AssertExpectations(t)
-// }
+	checkResponseCode(t, http.StatusBadRequest, rr.Code)
+	cs.AssertExpectations(t)
+}
 
-// func TestUpdateWhenEmptyName(t *testing.T) {
-// 	cs := &CategoryServiceMock{}
-// 	cs.On("Update", mock.Anything, mock.Anything).Return(errEmptyName)
+func TestUpdateWhenInternalError(t *testing.T) {
+	cs := &mocks.Service{}
+	cs.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("Internal Error"))
 
-// 	rr := makeHTTPCall(Update(cs), http.MethodPut, "/categories", `{"id":"1"}`)
+	rr := makeHTTPCall(users.UpdateUser(cs), http.MethodPut, "/users", `{"first_name": "Jayesh",
+    "last_name": "lohar"}`)
 
-// 	checkResponseCode(t, http.StatusBadRequest, rr.Code)
-// 	cs.AssertExpectations(t)
-// }
-
-// func TestUpdateWhenInternalError(t *testing.T) {
-// 	cs := &CategoryServiceMock{}
-// 	cs.On("Update", mock.Anything, mock.Anything).Return(errors.New("Internal Error"))
-
-// 	rr := makeHTTPCall(Update(cs), http.MethodPut, "/categories", `{"id":"1"}`)
-
-// 	checkResponseCode(t, http.StatusInternalServerError, rr.Code)
-// 	cs.AssertExpectations(t)
-// }
+	checkResponseCode(t, http.StatusInternalServerError, rr.Code)
+	cs.AssertExpectations(t)
+}

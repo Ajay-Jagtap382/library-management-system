@@ -132,11 +132,21 @@ func (cr CreateRequest) Validate() (err error) {
 }
 
 func (ur UpdateRequest) Validate() (err error) {
-	if ur.ID == "" {
-		return errEmptyID
-	}
 	if ur.First_Name == "" {
 		return errEmptyFirstName
+	}
+	if ur.Last_Name == "" {
+		return errEmptyLastName
+	}
+	for _, j := range ur.First_Name {
+		if !unicode.IsLetter(j) {
+			return errInvalidFirstName
+		}
+	}
+	for _, j := range ur.Last_Name {
+		if !unicode.IsLetter(j) {
+			return errInvalidLastName
+		}
 	}
 	return
 }
